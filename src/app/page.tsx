@@ -161,53 +161,53 @@ const content = {
     statusOff: "English Only Mode: OFF",
     switchEnglish: "Вернуться к английскому",
     book: "Записаться",
-    heroSuffix: "Без перевода в голове",
-    heroTextBefore: "Разговаривайте",
-    heroTextMiddle: "с носителем английского. Учитесь",
-    heroTextEnd: "и говорите с",
+    heroSuffix: "без перевода в голове",
+    heroTextBefore: "Говорите",
+    heroTextMiddle: "с носителем языка. Учитесь",
+    heroTextEnd: "и постепенно становитесь",
     trial: "Записаться на пробный урок",
-    clubCta: "В Speaking Club",
-    quote: "\"Не переводи. Объясняй.\"",
-    quoteCaption: "Философия обучения Криса.",
+    clubCta: "Присоединиться к Speaking Club",
+    quote: "\"Не переводи. Объясняй по-английски.\"",
+    quoteCaption: "Так Крис помогает начать думать на языке.",
     needHelp: "🇬🇧 Вернуться к английскому",
-    helpFirst: "Русский режим включен. Можно вернуться к English Only в любой момент.",
+    helpFirst: "Русский режим включен. Вернуться к английскому можно в любой момент.",
     helpSecond: "Вернуться к английскому",
     problems: [
-      "Я понимаю английский, но не могу говорить.",
+      "Понимаю английский, но не получается говорить.",
       "Я перевожу в голове.",
-      "Я забываю слова во время речи.",
-      "Я боюсь ошибаться.",
+      "Во время разговора забываю слова.",
+      "Боюсь ошибиться и замолкаю.",
     ],
     lessonLabel: "На уроке",
-    umbrellaTitle: "Не можете вспомнить слово?",
-    umbrellaIntro: "Представьте, что вы забыли слово",
+    umbrellaTitle: "Забыли нужное слово?",
+    umbrellaIntro: "Например, вы не вспомнили слово",
     umbrellaWord: "\"umbrella\"",
     youCanSay: "Можно сказать:",
-    umbrellaAnswer: "\"Это то, чем пользуются, когда идет дождь.\"",
+    umbrellaAnswer: "\"Это вещь, которую берут с собой, когда идет дождь.\"",
     styleCards: [
-      "Крис мягко помогает продолжать говорить.",
-      "Не останавливайтесь. Продолжайте мысль.",
-      "Скажите предложение целиком.",
-      "Ошибаться нормально.",
-      "Чем больше вы говорите, тем быстрее растете.",
+      "Крис спокойно помогает не останавливаться.",
+      "Продолжайте мысль, даже если слово забыто.",
+      "Лучше сказать всю фразу простыми словами.",
+      "Ошибки не страшны, они часть разговора.",
+      "Чем больше говорите, тем быстрее появляется свобода.",
     ],
     challengeTitle: "Задание на объяснение",
     todayWord: "Слово дня",
     showAnswer: "Показать ответ Криса",
     aboutTitle: "Chris Matoz",
     facts: [
-      "Носитель английского из Африки",
-      "Уроки только на английском",
-      "Индивидуальные онлайн-уроки",
-      "Ведущий Speaking Club",
+      "Носитель английского языка из Африки",
+      "Уроки проходят на английском",
+      "Индивидуальные занятия онлайн",
+      "Ведет Speaking Club",
     ],
-    clubTitleBefore: "Больше практики в",
-    clubPoints: ["Живые темы", "Малые группы", "Дружелюбная атмосфера", "Больше времени говорить"],
+    clubTitleBefore: "Больше разговорной практики в",
+    clubPoints: ["Живые темы", "Небольшие группы", "Спокойная атмосфера", "Больше времени на речь"],
     resultsTitle: "Результаты",
     results: [
-      "Говорить без перевода каждого предложения",
-      "Объяснять мысли на английском",
-      "Развить уверенность",
+      "Говорить без перевода каждой фразы",
+      "Объяснять мысли простым английским",
+      "Чувствовать себя увереннее в разговоре",
     ],
     pricesTitle: "Цены",
     prices: [
@@ -220,18 +220,18 @@ const content = {
     faq: [
       [
         "Нужен высокий уровень английского?",
-        "Нет. Достаточно базового английского, чтобы пробовать говорить.",
+        "Нет. Достаточно базового уровня и готовности пробовать говорить.",
       ],
       [
         "Что если я не знаю слово?",
-        "Вы объясняете мысль другими английскими словами, примерами и ситуациями.",
+        "Вы объясняете мысль другими английскими словами, через примеры и ситуации.",
       ],
       [
         "На уроках используется русский?",
-        "Нет. Уроки проходят на английском, чтобы мозг учился реагировать на английском.",
+        "Нет. Занятия идут на английском, чтобы вы привыкали реагировать без перевода.",
       ],
     ],
-    finalTitle: "Готовы начать говорить по-настоящему?",
+    finalTitle: "Готовы заговорить по-настоящему?",
     telegram: "Написать в Telegram",
     readingMode: "Режим чтения",
     modeLabels: { easy: "Легко", standard: "Стандарт", natural: "Живо" },
@@ -410,6 +410,31 @@ function VocabWord({
   );
 }
 
+function TeachingBackground() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[#f6f2ea]" />
+      <div className="absolute inset-0 opacity-[0.32] [background-image:linear-gradient(rgba(11,45,92,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(11,45,92,0.07)_1px,transparent_1px)] [background-size:44px_44px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.78),rgba(246,242,234,0.62)_38%,rgba(243,165,29,0.1)_62%,rgba(11,45,92,0.08))]" />
+      <div className="absolute left-[-8%] top-[12%] h-[34rem] w-[34rem] rotate-[-12deg] rounded-[42%] border border-[#0b2d5c]/10" />
+      <div className="absolute right-[-10%] top-[34%] h-[30rem] w-[30rem] rotate-[18deg] rounded-[42%] border border-[#f3a51d]/18" />
+      <div className="absolute left-[6%] top-[18%] hidden max-w-[30rem] rotate-[-7deg] items-center gap-3 text-[11px] font-black uppercase tracking-[0.22em] text-[#0b2d5c]/18 md:flex">
+        <span>word</span>
+        <span className="h-px w-16 bg-[#f3a51d]/38" />
+        <span>explain</span>
+        <span className="h-px w-16 bg-[#f3a51d]/38" />
+        <span>speak</span>
+      </div>
+      <div className="absolute bottom-[18%] right-[8%] hidden rotate-[6deg] text-[11px] font-black uppercase tracking-[0.24em] text-[#0b2d5c]/14 lg:block">
+        try again / keep talking / full sentence
+      </div>
+      <div className="absolute bottom-[8%] left-[10%] hidden rotate-[-4deg] text-[11px] font-black uppercase tracking-[0.24em] text-[#d28510]/20 lg:block">
+        explain it another way
+      </div>
+    </div>
+  );
+}
+
 function ReadingModeBar({
   mode,
   language,
@@ -426,20 +451,20 @@ function ReadingModeBar({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, duration: 0.42 }}
-      className="fixed inset-x-0 bottom-4 z-50 mx-auto w-[calc(100%-46px)] max-w-[304px] rounded-[22px] border border-white/55 bg-white/70 p-1 shadow-[0_10px_34px_rgba(16,31,61,0.14)] backdrop-blur-md supports-[backdrop-filter]:bg-white/58 sm:bottom-6"
+      className="fixed inset-x-0 bottom-4 z-50 mx-auto w-[calc(100%-32px)] max-w-[340px] rounded-[22px] border border-white/55 bg-white/72 p-1.5 shadow-[0_10px_34px_rgba(16,31,61,0.14)] backdrop-blur-md supports-[backdrop-filter]:bg-white/60 sm:bottom-6"
     >
       <div className="pointer-events-none absolute inset-0 -z-10 rounded-[22px] bg-[linear-gradient(90deg,rgba(255,255,255,0.24),transparent_50%,rgba(255,255,255,0.14))]" />
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-1.5">
-        <div className="px-2 text-[8px] font-semibold uppercase tracking-[0.14em] text-[#18345f] sm:pr-0 sm:text-[9px]">
+      <div className="flex flex-col gap-1">
+        <div className="px-2 text-center text-[8px] font-semibold uppercase tracking-[0.14em] text-[#18345f] sm:text-[9px]">
           <span aria-hidden="true" className="mr-1">📖</span>
           {copy.readingMode}
         </div>
-        <div className="grid flex-1 grid-cols-3 gap-0.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {modes.map((item) => (
             <button
               key={item}
               onClick={() => onChange(item)}
-              className={`relative h-7 rounded-full px-1.5 text-[11px] font-semibold capitalize transition active:scale-[0.98] ${
+              className={`relative h-8 rounded-full px-2 text-center text-[10px] font-semibold capitalize transition active:scale-[0.98] sm:text-[11px] ${
                 mode === item
                   ? "text-white"
                   : "text-[#20324b] hover:bg-white/45"
@@ -452,7 +477,7 @@ function ReadingModeBar({
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}
-              <span className="relative">{copy.modeLabels[item]}</span>
+              <span className="relative block whitespace-nowrap">{copy.modeLabels[item]}</span>
             </button>
           ))}
         </div>
@@ -679,7 +704,7 @@ function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`mx-auto w-full max-w-7xl px-5 sm:px-8 ${className}`}>
+    <section id={id} className={`relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 ${className}`}>
       {children}
     </section>
   );
@@ -708,7 +733,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden bg-[#f6f2ea] pb-28 text-[#172033]">
+    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#f6f2ea] pb-28 text-[#172033]">
+      <TeachingBackground />
       <div className="fixed inset-x-0 top-0 z-40 border-b border-white/55 bg-[#f6f2ea]/82 backdrop-blur-xl">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
           <a href="#top" className="flex items-center gap-3 font-bold text-[#0b2d5c]">
