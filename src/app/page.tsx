@@ -493,8 +493,8 @@ function ReadingModeBar({
 
 function HeroMedia({ videoSrc }: { videoSrc?: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[30px] border border-white/70 bg-white/58 p-4 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl lg:-mt-16">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-[#f8f4ed]">
+    <div className="relative overflow-hidden rounded-[30px] border border-white/70 bg-white/58 p-3 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl lg:-mt-10 lg:ml-auto lg:max-w-[560px]">
+      <div className="relative aspect-[4/4.2] overflow-hidden rounded-[22px] bg-[#f8f4ed]">
         {videoSrc ? (
           <video
             className="h-full w-full object-cover"
