@@ -27,6 +27,9 @@ type VariantKey =
   | "moreConfidence";
 type VocabKey = "translating" | "confidence" | "conversation";
 
+const siteBasePath = process.env.GITHUB_PAGES === "true" ? "/chris" : "";
+const assetPath = (path: string) => `${siteBasePath}${path}`;
+
 const modes: ReadingMode[] = ["easy", "standard", "natural"];
 
 const textVariants: Record<VariantKey, Record<ReadingMode, string>> = {
@@ -68,7 +71,7 @@ const textVariants: Record<VariantKey, Record<ReadingMode, string>> = {
 };
 
 const vocabNotes: Record<VocabKey, string> = {
-  translating: "Changing words from one language into another.",
+  translating: "When you build a sentence in Russian first, then change it into English. Chris helps you skip that step.",
   confidence: "Feeling calm because you know you can try.",
   conversation: "Speaking and listening with another person.",
 };
@@ -162,38 +165,37 @@ const content = {
     switchEnglish: "Вернуться к английскому",
     book: "Записаться",
     heroSuffix: "без перевода в голове",
-    heroTextBefore: "Говорите",
-    heroTextMiddle: "с носителем языка. Учитесь",
-    heroTextEnd: "и постепенно становитесь",
+    heroTextBefore: "Заговорите на английском",
+    heroTextMiddle: "Практикуйтесь с носителем языка, учитесь объяснять мысли по-английски",
+    heroTextEnd: "и шаг за шагом говорите свободнее.",
     trial: "Записаться на пробный урок",
-    clubCta: "Присоединиться к Speaking Club",
-    quote: "\"Не переводи. Объясняй по-английски.\"",
-    quoteCaption: "Так Крис помогает начать думать на языке.",
+    clubCta: "В Speaking Club",
+    quote: "\"Не переводи. Объясняй.\"",
+    quoteCaption: "Так Крис помогает ученикам начать думать по-английски.",
     needHelp: "🇬🇧 Вернуться к английскому",
-    helpFirst: "Русский режим включен. Вернуться к английскому можно в любой момент.",
-    helpSecond: "Вернуться к английскому",
+    helpFirst: "Are you sure? Let's try to continue in English first.",
+    helpSecond: "Перевести на русский",
     problems: [
-      "Понимаю английский, но не получается говорить.",
-      "Я перевожу в голове.",
-      "Во время разговора забываю слова.",
-      "Боюсь ошибиться и замолкаю.",
+      "Английский понимаю, но говорить сложно",
+      "Сначала перевожу фразу в голове",
+      "Забываю слова во время разговора",
+      "Боюсь ошибиться и замолкаю",
     ],
-    lessonLabel: "На уроке",
-    umbrellaTitle: "Забыли нужное слово?",
-    umbrellaIntro: "Например, вы не вспомнили слово",
+    lessonLabel: "Как это работает на уроке",
+    umbrellaTitle: "Забыли слово?",
+    umbrellaIntro: "Например, вы забыли слово",
     umbrellaWord: "\"umbrella\"",
-    youCanSay: "Можно сказать:",
-    umbrellaAnswer: "\"Это вещь, которую берут с собой, когда идет дождь.\"",
+    youCanSay: "Можно сказать проще:",
+    umbrellaAnswer: "\"It's something you use when it rains.\"",
     styleCards: [
-      "Крис спокойно помогает не останавливаться.",
-      "Продолжайте мысль, даже если слово забыто.",
-      "Лучше сказать всю фразу простыми словами.",
-      "Ошибки не страшны, они часть разговора.",
-      "Чем больше говорите, тем быстрее появляется свобода.",
+      "Говорите больше, даже если пока неидеально",
+      "Собирайте мысль в полную фразу",
+      "Ошибки — нормальная часть разговора",
+      "Чем больше практики, тем быстрее появляется свобода",
     ],
-    challengeTitle: "Задание на объяснение",
+    challengeTitle: "Мини-задание",
     todayWord: "Слово дня",
-    showAnswer: "Показать ответ Криса",
+    showAnswer: "Показать пример Криса",
     aboutTitle: "Chris Matoz",
     facts: [
       "Носитель английского языка из Африки",
@@ -201,42 +203,42 @@ const content = {
       "Индивидуальные занятия онлайн",
       "Ведет Speaking Club",
     ],
-    clubTitleBefore: "Больше разговорной практики в",
-    clubPoints: ["Живые темы", "Небольшие группы", "Спокойная атмосфера", "Больше времени на речь"],
-    resultsTitle: "Результаты",
+    clubTitleBefore: "Разговорная практика в",
+    clubPoints: ["Живые темы", "Небольшие группы", "Спокойная атмосфера", "Больше времени говорить"],
+    resultsTitle: "Что меняется после практики",
     results: [
-      "Говорить без перевода каждой фразы",
-      "Объяснять мысли простым английским",
-      "Чувствовать себя увереннее в разговоре",
+      "Меньше перевода в голове",
+      "Проще объяснять мысли по-английски",
+      "Больше уверенности в разговоре",
     ],
-    pricesTitle: "Цены",
+    pricesTitle: "Стоимость",
     prices: [
       ["Пробный урок", "от ₽___"],
       ["Индивидуальный урок", "от ₽___"],
       ["Speaking Club", "от ₽___"],
       ["Пакет на месяц", "от ₽___"],
     ],
-    faqTitle: "FAQ",
+    faqTitle: "Вопросы",
     faq: [
       [
-        "Нужен высокий уровень английского?",
-        "Нет. Достаточно базового уровня и готовности пробовать говорить.",
+        "Нужно ли уже хорошо знать английский?",
+        "Нет. Достаточно базового уровня и желания говорить.",
       ],
       [
-        "Что если я не знаю слово?",
-        "Вы объясняете мысль другими английскими словами, через примеры и ситуации.",
+        "Что делать, если я не знаю слово?",
+        "Объяснить мысль другими английскими словами и не останавливаться.",
       ],
       [
-        "На уроках используется русский?",
-        "Нет. Занятия идут на английском, чтобы вы привыкали реагировать без перевода.",
+        "Можно ли заниматься без русского?",
+        "Да. Именно так уходит привычка переводить в голове.",
       ],
     ],
-    finalTitle: "Готовы заговорить по-настоящему?",
+    finalTitle: "Хотите заговорить увереннее?",
     telegram: "Написать в Telegram",
     readingMode: "Режим чтения",
     modeLabels: { easy: "Легко", standard: "Стандарт", natural: "Живо" },
-    videoReady: "Место для welcome video",
-    videoSlot: "Готово для ролика 10-15 секунд.",
+    videoReady: "Место под видео",
+    videoSlot: "Сюда позже можно поставить ролик на 10–15 секунд.",
   },
 } as const;
 
@@ -396,13 +398,16 @@ function VocabWord({
       <AnimatePresence>
         {active && (
           <motion.span
-            initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 4, filter: "blur(4px)" }}
-            transition={{ duration: 0.16 }}
-            className="absolute left-0 top-full z-30 mt-2 w-56 rounded-2xl border border-white/80 bg-white px-4 py-3 text-left text-sm font-semibold leading-6 text-[#20304b] shadow-[0_14px_34px_rgba(31,45,70,0.16)]"
+            initial={{ opacity: 0, y: 8, scale: 0.96, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 6, scale: 0.96, filter: "blur(6px)" }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="absolute left-1/2 top-full z-50 mt-3 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-[20px] border border-[#f3a51d]/30 bg-white px-4 py-3 text-left font-sans text-sm font-semibold normal-case leading-6 tracking-normal text-[#20304b] shadow-[0_18px_46px_rgba(31,45,70,0.18)]"
           >
-            {vocabNotes[id]}
+            <span className="mb-1 block text-[11px] font-black uppercase tracking-[0.12em] text-[#d28510]">
+              Simple English
+            </span>
+            <span className="block">{vocabNotes[id]}</span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -500,11 +505,11 @@ function HeroMedia({ videoSrc, language }: { videoSrc?: string; language: SiteLa
             muted
             loop
             playsInline
-            poster="/chris-logo.png"
+            poster={assetPath("/chris-logo.png")}
           />
         ) : (
           <Image
-            src="/chris-logo.png"
+            src={assetPath("/chris-logo.png")}
             alt="Spoken English with Chris brand mark"
             fill
             className="object-cover"
@@ -557,6 +562,7 @@ function NeedHelp({
       setStep(1);
       return;
     }
+    setStep(0);
     onRussian();
   };
 
@@ -566,23 +572,19 @@ function NeedHelp({
         onClick={handleClick}
         className="inline-flex items-center justify-center gap-2 rounded-full border border-[#0b2d5c]/12 bg-white/82 px-6 py-4 text-base font-black text-[#0b2d5c] shadow-[0_14px_34px_rgba(31,45,70,0.12)]"
       >
-        {step === 0 ? copy.needHelp : copy.helpSecond}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={step}
+            initial={{ opacity: 0, y: 5, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -5, filter: "blur(4px)" }}
+            transition={{ duration: 0.16 }}
+          >
+            {step === 0 ? copy.needHelp : copy.helpFirst}
+          </motion.span>
+        </AnimatePresence>
         <ArrowRight size={18} weight="bold" />
       </MotionButton>
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <motion.p
-            key="help-first"
-            initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
-            transition={{ duration: 0.18 }}
-            className="mt-3 max-w-md rounded-2xl bg-white/70 px-4 py-3 text-sm font-semibold leading-6 text-[#42506a]"
-          >
-            {copy.helpFirst}
-          </motion.p>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -648,7 +650,7 @@ function ExplainChallenge({
             transition={{ duration: 0.25 }}
             className="mt-5 overflow-hidden rounded-[22px] bg-[#0b2d5c] p-5 text-2xl font-black leading-snug text-white"
           >
-            &quot;{language === "ru" ? challenge.ru[mode] : challenge.answer[mode]}&quot;
+            &quot;{challenge.answer[mode]}&quot;
           </motion.p>
         )}
       </AnimatePresence>
@@ -739,7 +741,7 @@ export default function Home() {
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
           <a href="#top" className="flex items-center gap-3 font-bold text-[#0b2d5c]">
             <Image
-              src="/chris-logo.png"
+              src={assetPath("/chris-logo.png")}
               alt="Spoken English with Chris logo"
               width={52}
               height={52}
@@ -788,18 +790,27 @@ export default function Home() {
             className="max-w-3xl"
           >
             <h1 className="max-w-[780px] text-5xl font-black leading-[0.96] tracking-tight text-[#0b2d5c] sm:text-6xl lg:text-7xl">
-              {isRussian ? "Говорите по-английски " : "Speak English "}
-              <AdaptiveText
-                id="heroNaturally"
-                mode={readingMode}
-                language={siteLanguage}
-                ru="естественно"
-              />{" "}
               {isRussian ? (
-                copy.heroSuffix
+                <>
+                  {copy.heroTextBefore}{" "}
+                  <AdaptiveText
+                    id="heroNaturally"
+                    mode={readingMode}
+                    language={siteLanguage}
+                    ru="естественно"
+                  />{" "}
+                  {copy.heroSuffix}
+                </>
               ) : (
                 <>
-                  Without{" "}
+                  Speak English{" "}
+                  <AdaptiveText
+                    id="heroNaturally"
+                    mode={readingMode}
+                    language={siteLanguage}
+                    ru="naturally"
+                  />{" "}
+                  Without {" "}
                   <VocabWord
                     id="translating"
                     active={activeVocab === "translating"}
@@ -813,7 +824,16 @@ export default function Home() {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#42506a] sm:text-xl">
               {isRussian ? (
-                "Практикуйте разговорный английский"
+                <>
+                  {copy.heroTextMiddle}{" "}
+                  <AdaptiveText
+                    id="explainIdeas"
+                    mode={readingMode}
+                    language={siteLanguage}
+                    ru="объяснять мысли по-английски"
+                  />{" "}
+                  {copy.heroTextEnd}
+                </>
               ) : (
                 <>
                   {copy.heroTextBefore}{" "}
@@ -828,17 +848,17 @@ export default function Home() {
                   <AdaptiveText id="realConversation" mode={readingMode} language={siteLanguage} />
                 </VocabWord>
               )}{" "}
-              {copy.heroTextMiddle}{" "}
-              <AdaptiveText
-                id="explainIdeas"
-                mode={readingMode}
-                language={siteLanguage}
-                ru="объяснять мысли по-английски"
-              />{" "}
-              {copy.heroTextEnd}{" "}
-              {isRussian ? (
-                "уверенностью"
-              ) : (
+              {!isRussian && copy.heroTextMiddle}{" "}
+              {!isRussian && (
+                <AdaptiveText
+                  id="explainIdeas"
+                  mode={readingMode}
+                  language={siteLanguage}
+                  ru="explain your ideas"
+                />
+              )}{" "}
+              {!isRussian && copy.heroTextEnd}{" "}
+              {!isRussian && (
                 <VocabWord
                   id="confidence"
                   active={activeVocab === "confidence"}
@@ -847,7 +867,7 @@ export default function Home() {
                   <AdaptiveText id="moreConfidence" mode={readingMode} language={siteLanguage} />
                 </VocabWord>
               )}
-              .
+              {!isRussian && "."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <MotionButton
@@ -968,7 +988,7 @@ export default function Home() {
               {copy.facts.map((fact) => (
                 <MotionCard
                   key={fact}
-                  className="rounded-full bg-white/66 px-4 py-3 font-bold text-[#24334f] shadow-sm"
+                  className="flex min-h-[92px] items-center justify-center rounded-full bg-white/66 px-5 py-4 text-center text-lg font-bold leading-snug text-[#24334f] shadow-sm"
                 >
                   {fact}
                 </MotionCard>
@@ -978,7 +998,7 @@ export default function Home() {
           <MotionCard className="relative overflow-hidden rounded-[30px] border border-white/70 bg-[#0b2d5c] p-4 shadow-[0_24px_60px_rgba(11,45,92,0.2)]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-[22px] bg-white">
               <Image
-                src="/chris-logo.png"
+                src={assetPath("/chris-logo.png")}
                 alt="Photo or video placeholder for Chris Matoz"
                 fill
                 className="object-contain p-8"
@@ -1002,7 +1022,7 @@ export default function Home() {
                   id="friendlyAtmosphere"
                   mode={readingMode}
                   language={siteLanguage}
-                  ru="дружелюбной группе"
+                  ru="спокойной группе"
                 />.
               </h2>
               <MotionButton
@@ -1128,3 +1148,5 @@ export default function Home() {
     </main>
   );
 }
+
+
