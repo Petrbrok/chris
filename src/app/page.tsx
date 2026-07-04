@@ -9,7 +9,7 @@ import {
   CheckCircle,
   EnvelopeSimple,
   InstagramLogo,
-  PlayCircle,
+  User,
   TelegramLogo,
   WhatsappLogo,
 } from "@phosphor-icons/react";
@@ -491,12 +491,10 @@ function ReadingModeBar({
   );
 }
 
-function HeroMedia({ videoSrc, language }: { videoSrc?: string; language: SiteLanguage }) {
-  const copy = content[language];
-
+function HeroMedia({ videoSrc }: { videoSrc?: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[30px] border border-white/70 bg-white/58 p-4 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-[#0b2d5c]">
+    <div className="relative overflow-hidden rounded-[30px] border border-white/70 bg-white/58 p-4 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl lg:-mt-16">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-[#f8f4ed]">
         {videoSrc ? (
           <video
             className="h-full w-full object-cover"
@@ -505,28 +503,15 @@ function HeroMedia({ videoSrc, language }: { videoSrc?: string; language: SiteLa
             muted
             loop
             playsInline
-            poster={assetPath("/chris-logo.png")}
           />
         ) : (
-          <Image
-            src={assetPath("/chris-logo.png")}
-            alt="Spoken English with Chris brand mark"
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 90vw, 42vw"
-            priority
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d5c]/74 via-transparent to-transparent" />
-        <div className="absolute bottom-5 left-5 right-5 rounded-[20px] border border-white/35 bg-white/18 p-4 text-white backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <PlayCircle size={32} weight="fill" />
-            <div>
-              <p className="font-bold">{copy.videoReady}</p>
-              <p className="text-sm text-white/78">{copy.videoSlot}</p>
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="rounded-full bg-[#0b2d5c]/8 p-8 text-[#0b2d5c] shadow-[inset_0_0_0_1px_rgba(11,45,92,0.08)]">
+              <User size={84} weight="light" />
             </div>
           </div>
-        </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d5c]/16 via-transparent to-transparent" />
       </div>
     </div>
   );
@@ -544,25 +529,16 @@ function NeedHelp({
   const [step, setStep] = useState<0 | 1>(0);
   const copy = content[language];
 
-  if (language === "ru") {
-    return (
-      <div className="mt-6">
-        <MotionButton
-          onClick={onEnglish}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0b2d5c] px-6 py-4 text-base font-black text-white shadow-[0_18px_40px_rgba(11,45,92,0.22)]"
-        >
-          {copy.needHelp} <ArrowRight size={18} weight="bold" />
-        </MotionButton>
-      </div>
-    );
-  }
-
   const handleClick = () => {
     if (step === 0) {
       setStep(1);
       return;
     }
     setStep(0);
+    if (language === "ru") {
+      onEnglish();
+      return;
+    }
     onRussian();
   };
 
@@ -782,7 +758,7 @@ export default function Home() {
       </div>
 
       <Section id="top" className="pt-24 sm:pt-28">
-        <div className="grid min-h-[calc(100dvh-96px)] items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid min-h-[calc(100dvh-96px)] items-start gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
@@ -892,6 +868,7 @@ export default function Home() {
               </figcaption>
             </MotionCard>
             <NeedHelp
+              key={siteLanguage}
               language={siteLanguage}
               onRussian={() => setSiteLanguage("ru")}
               onEnglish={() => setSiteLanguage("en")}
@@ -905,7 +882,7 @@ export default function Home() {
             className="relative"
           >
             <div className="absolute -left-6 top-10 h-24 w-24 rounded-[28px] bg-[#f3a51d]/75 blur-2xl" />
-            <HeroMedia language={siteLanguage} />
+            <HeroMedia />
           </motion.div>
         </div>
       </Section>
@@ -997,13 +974,9 @@ export default function Home() {
           </div>
           <MotionCard className="relative overflow-hidden rounded-[30px] border border-white/70 bg-[#0b2d5c] p-4 shadow-[0_24px_60px_rgba(11,45,92,0.2)]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-[22px] bg-white">
-              <Image
-                src={assetPath("/chris-logo.png")}
-                alt="Photo or video placeholder for Chris Matoz"
-                fill
-                className="object-contain p-8"
-                sizes="(max-width: 1024px) 90vw, 44vw"
-              />
+              <div className="flex h-full w-full items-center justify-center bg-[#f8f4ed] text-[#0b2d5c]">
+                <User size={72} weight="light" />
+              </div>
             </div>
           </MotionCard>
         </div>
