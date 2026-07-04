@@ -20,6 +20,7 @@ type ReadingMode = "easy" | "standard" | "natural";
 
 type VariantKey =
   | "confidence"
+  | "heroNaturally"
   | "naturally"
   | "improve"
   | "conversation"
@@ -37,8 +38,13 @@ const textVariants: Record<VariantKey, Record<ReadingMode, string>> = {
     standard: "confidence",
     natural: "self-assurance",
   },
+  heroNaturally: {
+    easy: "More Easily",
+    standard: "Naturally",
+    natural: "Effortlessly",
+  },
   naturally: {
-    easy: "in a normal way",
+    easy: "more easily",
     standard: "naturally",
     natural: "effortlessly",
   },
@@ -103,11 +109,26 @@ function AdaptiveText({
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={`${id}-${mode}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="inline-block"
+          initial={{
+            opacity: 0,
+            y: 5,
+            filter: "blur(6px)",
+            backgroundColor: "rgba(243, 165, 29, 0.42)",
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            backgroundColor: "rgba(243, 165, 29, 0)",
+          }}
+          exit={{ opacity: 0, y: -5, filter: "blur(6px)" }}
+          transition={{
+            opacity: { duration: 0.24, ease: "easeOut" },
+            y: { duration: 0.24, ease: "easeOut" },
+            filter: { duration: 0.24, ease: "easeOut" },
+            backgroundColor: { duration: 0.3, ease: "easeOut" },
+          }}
+          className="-mx-1 inline-block rounded-lg px-1"
         >
           {textVariants[id][mode]}
         </motion.span>
@@ -145,6 +166,12 @@ const clubPoints = [
   "Friendly atmosphere",
   "More speaking time",
   "Less fear of mistakes",
+];
+
+const coachPrompts = [
+  "Can you explain it another way?",
+  "Use different words.",
+  "Don't worry about mistakes.",
 ];
 
 const prices = [
@@ -193,11 +220,12 @@ function ReadingModeBar({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.45 }}
-      className="fixed inset-x-0 bottom-4 z-50 mx-auto w-[calc(100%-24px)] max-w-[430px] rounded-[30px] border border-white/45 bg-white/45 p-2 shadow-[0_18px_70px_rgba(16,31,61,0.22)] backdrop-blur-2xl supports-[backdrop-filter]:bg-white/34 sm:bottom-6"
+      className="fixed inset-x-0 bottom-4 z-50 mx-auto w-[calc(100%-36px)] max-w-[360px] rounded-[24px] border border-white/55 bg-white/68 p-1.5 shadow-[0_12px_42px_rgba(16,31,61,0.16)] backdrop-blur-md supports-[backdrop-filter]:bg-white/58 sm:bottom-6"
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 rounded-[30px] bg-[radial-gradient(circle_at_18%_0%,rgba(255,255,255,0.9),transparent_35%),linear-gradient(90deg,rgba(255,255,255,0.38),transparent_48%,rgba(255,255,255,0.22))]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 rounded-[24px] bg-[linear-gradient(90deg,rgba(255,255,255,0.28),transparent_52%,rgba(255,255,255,0.16))]" />
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-        <div className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#18345f] sm:pr-1 sm:text-[11px]">
+        <div className="px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#18345f] sm:pr-0 sm:text-[10px]">
+          <span aria-hidden="true" className="mr-1">📖</span>
           Reading mode
         </div>
         <div className="grid flex-1 grid-cols-3 gap-1">
@@ -205,7 +233,7 @@ function ReadingModeBar({
             <button
               key={item}
               onClick={() => onChange(item)}
-              className={`relative h-10 rounded-full px-3 text-sm font-semibold capitalize transition active:scale-[0.98] ${
+              className={`relative h-8 rounded-full px-2 text-xs font-semibold capitalize transition active:scale-[0.98] ${
                 mode === item
                   ? "text-white"
                   : "text-[#20324b] hover:bg-white/45"
@@ -214,7 +242,7 @@ function ReadingModeBar({
               {mode === item && (
                 <motion.span
                   layoutId="reading-mode-pill"
-                  className="absolute inset-0 rounded-full bg-[#0b2d5c] shadow-[0_8px_22px_rgba(11,45,92,0.28)]"
+                  className="absolute inset-0 rounded-full bg-[#0b2d5c] shadow-[0_6px_16px_rgba(11,45,92,0.22)]"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}
@@ -224,6 +252,47 @@ function ReadingModeBar({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function HeroMedia({ videoSrc }: { videoSrc?: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/58 p-4 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[24px] bg-[#0b2d5c]">
+        {videoSrc ? (
+          <video
+            className="h-full w-full object-cover"
+            src={videoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/chris-logo.png"
+          />
+        ) : (
+          <Image
+            src="/chris-logo.png"
+            alt="Spoken English with Chris brand mark"
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 90vw, 42vw"
+            priority
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d5c]/74 via-transparent to-transparent" />
+        <div className="absolute bottom-5 left-5 right-5 rounded-[22px] border border-white/35 bg-white/18 p-4 text-white backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <PlayCircle size={34} weight="fill" />
+            <div>
+              <p className="font-bold">Photo or welcome video slot</p>
+              <p className="text-sm text-white/78">
+                Ready for a 10 to 15 second looping intro.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -311,7 +380,7 @@ export default function Home() {
             </p>
             <h1 className="max-w-[780px] text-5xl font-black leading-[0.96] tracking-tight text-[#0b2d5c] sm:text-6xl lg:text-7xl">
               Speak English{" "}
-              <AdaptiveText id="naturally" mode={readingMode} /> Without
+              <AdaptiveText id="heroNaturally" mode={readingMode} /> Without
               Translating in Your Head
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#42506a] sm:text-xl">
@@ -336,6 +405,14 @@ export default function Home() {
                 <ChatsCircle size={20} weight="bold" /> Join Speaking Club
               </a>
             </div>
+            <figure className="mt-6 max-w-sm rounded-[22px] border-l-4 border-[#f3a51d] bg-white/62 px-5 py-4 shadow-sm">
+              <blockquote className="text-xl font-black text-[#0b2d5c]">
+                &quot;Don&apos;t translate. Explain.&quot;
+              </blockquote>
+              <figcaption className="mt-1 text-sm font-semibold text-[#42506a]">
+                Chris&apos;s teaching philosophy.
+              </figcaption>
+            </figure>
             <div className="mt-8 flex flex-wrap gap-2">
               {["Native Speaker", "No Russian", "Real Speaking", "Speaking Club"].map(
                 (badge) => (
@@ -358,30 +435,7 @@ export default function Home() {
           >
             <div className="absolute -left-6 top-10 h-24 w-24 rounded-[28px] bg-[#f3a51d]/85 blur-2xl" />
             <div className="absolute -right-8 bottom-14 h-36 w-36 rounded-[38px] bg-[#0b2d5c]/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/58 p-4 shadow-[0_28px_80px_rgba(27,43,71,0.16)] backdrop-blur-xl">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[24px] bg-[#0b2d5c]">
-                <Image
-                  src="/chris-logo.png"
-                  alt="Spoken English with Chris brand mark"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 90vw, 42vw"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d5c]/74 via-transparent to-transparent" />
-                <div className="absolute bottom-5 left-5 right-5 rounded-[22px] border border-white/35 bg-white/18 p-4 text-white backdrop-blur-xl">
-                  <div className="flex items-center gap-3">
-                    <PlayCircle size={34} weight="fill" />
-                    <div>
-                      <p className="font-bold">Photo or intro video slot</p>
-                      <p className="text-sm text-white/78">
-                        Add Chris speaking to camera here.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HeroMedia />
           </motion.div>
         </div>
       </Section>
@@ -400,6 +454,61 @@ export default function Home() {
               <p className="text-lg font-bold leading-snug text-[#1f2c45]">{problem}</p>
             </motion.div>
           ))}
+        </div>
+      </Section>
+
+      <Section className="py-10">
+        <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr] lg:items-stretch">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            className="rounded-[30px] border border-white/70 bg-white/68 p-6 shadow-[0_18px_46px_rgba(31,45,70,0.09)] sm:p-8"
+          >
+            <p className="text-sm font-black uppercase tracking-[0.14em] text-[#d28510]">
+              In a lesson
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0b2d5c] sm:text-4xl">
+              Can&apos;t think of a word?
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-[#42506a]">
+              Imagine you forgot the word <span className="font-black text-[#172033]">&quot;umbrella&quot;</span>.
+            </p>
+            <div className="mt-6 rounded-[24px] bg-[#0b2d5c] p-5 text-white">
+              <p className="text-sm font-bold text-[#f3a51d]">You can say:</p>
+              <p className="mt-2 text-2xl font-black leading-snug">
+                &quot;It&apos;s something you use when it rains.&quot;
+              </p>
+            </div>
+            <p className="mt-5 text-lg font-bold text-[#20304b]">
+              This is how we learn during lessons.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-3">
+            {coachPrompts.map((prompt, index) => (
+              <motion.div
+                key={prompt}
+                initial={{ opacity: 0, x: 18 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: index * 0.05 }}
+                className="flex items-center gap-4 rounded-[24px] border border-white/70 bg-white/62 p-5 shadow-[0_14px_34px_rgba(31,45,70,0.08)]"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f3a51d] font-black text-[#172033]">
+                  C
+                </span>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#d28510]">
+                    Chris would ask
+                  </p>
+                  <p className="mt-1 text-lg font-black leading-snug text-[#20304b]">
+                    &quot;{prompt}&quot;
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </Section>
 
