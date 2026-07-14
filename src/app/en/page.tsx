@@ -6,10 +6,10 @@ import { getSiteContent } from "@/lib/site-overrides";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: seo.ru.title,
-  description: seo.ru.description,
+  title: seo.en.title,
+  description: seo.en.description,
   alternates: {
-    canonical: seo.ru.path,
+    canonical: seo.en.path,
     languages: {
       ru: seo.ru.path,
       en: seo.en.path,
@@ -20,5 +20,5 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const siteContent = await getSiteContent();
-  return <HomePage lang="ru" siteContent={siteContent} />;
+  return <HomePage lang="en" siteContent={siteContent} />;
 }

@@ -3,6 +3,11 @@
 :root {
   --background: #f6f2ea;
   --foreground: #172033;
+  --paper: #f6f2ea;
+  --ink: #172033;
+  --muted: #42506a;
+  --accent: #f3a51d;
+  --accent-dark: #9b5f08;
 }
 
 @theme inline {
@@ -23,7 +28,7 @@ html {
 }
 
 ::selection {
-  background: #f3a51d;
+  background: var(--accent);
   color: #172033;
 }
 
