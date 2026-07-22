@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import { content } from "@/lib/site";
 import type { SiteContent } from "@/lib/site-overrides";
+import BotAdmin from "./BotAdmin";
 
-type TabKey = "texts" | "leads" | "tests" | "speaking" | "export";
+type TabKey = "bot" | "texts" | "leads" | "tests" | "speaking" | "export";
 type LangKey = "ru" | "en";
 type Row = Record<string, unknown>;
 
 const tabs: Array<{ key: TabKey; label: string }> = [
+  { key: "bot", label: "Ученики и бот" },
   { key: "texts", label: "Тексты сайта" },
   { key: "leads", label: "Заявки" },
   { key: "tests", label: "Прошли тест" },
@@ -24,7 +26,7 @@ export default function AdminPage() {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
-  const [activeTab, setActiveTab] = useState<TabKey>("texts");
+  const [activeTab, setActiveTab] = useState<TabKey>("bot");
   const [lang, setLang] = useState<LangKey>("ru");
   const [siteContent, setSiteContent] = useState<SiteContent>(cloneContent);
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -158,6 +160,8 @@ export default function AdminPage() {
             <Metric label="Speaking" value={speaking.length} />
             <Metric label="Голосовые" value={audioCount} />
           </div>
+
+          {activeTab === "bot" && <BotAdmin token={token} />}
 
           {activeTab === "texts" && (
             <Card title="Редактирование всех текстов">

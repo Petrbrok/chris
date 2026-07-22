@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 5555",
+    "dev:all": "node scripts/dev-all.mjs",
+    "bot": "node bot/index.mjs",
+    "db:migrate": "node scripts/migrate.mjs",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 5555",
     "lint": "eslint"
@@ -15,7 +18,8 @@
     "next": "16.2.10",
     "pg": "^8.22.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "undici": "^8.8.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

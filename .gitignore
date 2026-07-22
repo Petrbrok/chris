@@ -45,3 +45,6 @@ next-env.d.ts
 public/uploads/speaking/*.webm
 public/uploads/speaking/*.mp3
 public/uploads/speaking/*.mp4
+public/uploads/bot/*
+!public/uploads/bot/.gitkeep
+/storage/
