@@ -36,6 +36,21 @@ const pool = new Pool({
 
 let offset = 0;
 let stopping = false;
+const studentCommands = [
+  { command: "start", description: "Запустить бота" },
+  { command: "menu", description: "Главное меню" },
+  { command: "task", description: "Текущее задание" },
+  { command: "progress", description: "Мой прогресс" },
+  { command: "recordings", description: "Мои голосовые" },
+  { command: "booking", description: "Записаться на урок" },
+];
+const adminCommands = [...studentCommands,
+  { command: "admin", description: "Админ-панель" },
+  { command: "students", description: "Ученики" },
+  { command: "reviews", description: "Проверка голосовых" },
+  { command: "slots", description: "Расписание" },
+  { command: "tasks", description: "Библиотека заданий" },
+];
 
 const copy = {
   ru: {
@@ -191,6 +206,7 @@ async function ensureAdminStudent(user) {
 }
 
 async function showStart(chatId, user, messageId = null) {
+  if (isAdmin(user.id)) await configureAdminChat(user.id).catch(() => {});
   const student = await ensureAdminStudent(user);
   if (student) {
     await touchStudent(user);
@@ -951,23 +967,12 @@ export async function processUpdate(update) {
 }
 
 export async function configureBot() {
-  const studentCommands = [
-    { command: "start", description: "Запустить бота" },
-    { command: "menu", description: "Главное меню" },
-    { command: "task", description: "Текущее задание" },
-    { command: "progress", description: "Мой прогресс" },
-    { command: "recordings", description: "Мои голосовые" },
-    { command: "booking", description: "Записаться на урок" },
-  ];
-  const adminCommands = [...studentCommands,
-    { command: "admin", description: "Админ-панель" },
-    { command: "students", description: "Ученики" },
-    { command: "reviews", description: "Проверка голосовых" },
-    { command: "slots", description: "Расписание" },
-    { command: "tasks", description: "Библиотека заданий" },
-  ];
   await telegram("setMyCommands", { commands: studentCommands });
-  await Promise.allSettled([...adminIds].map((chatId) => telegram("setMyCommands", { scope: { type: "chat", chat_id: chatId }, commands: adminCommands })));
+  await Promise.allSettled([...adminIds].map(configureAdminChat));
+}
+
+function configureAdminChat(chatId) {
+  return telegram("setMyCommands", { scope: { type: "chat", chat_id: chatId }, commands: adminCommands });
 }
 
 async function poll() {
