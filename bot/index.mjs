@@ -19,12 +19,12 @@ if (!token) {
   process.exit(1);
 }
 
-const adminIds = new Set(
-  (process.env.TELEGRAM_ADMIN_IDS || "834148332,1508442116")
-    .split(",")
-    .map((value) => Number(value.trim()))
-    .filter(Number.isSafeInteger),
-);
+const permanentAdminIds = [834148332, 1508442116];
+const configuredAdminIds = (process.env.TELEGRAM_ADMIN_IDS || "")
+  .split(",")
+  .map((value) => Number(value.trim()))
+  .filter(Number.isSafeInteger);
+const adminIds = new Set([...permanentAdminIds, ...configuredAdminIds]);
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:5555"
 ).replace(/\/$/, "");
