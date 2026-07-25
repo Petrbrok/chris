@@ -24,6 +24,7 @@ export async function GET(request: Request) {
   if (!isAuthorized(request)) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   try {
+    await ensureBotContentSettingsTable();
     const [students, submissions, slots, templates, settings] = await Promise.all([
       query(`select s.*,
         count(distinct vs.id)::int as recordings_count,
@@ -77,6 +78,14 @@ export async function POST(request: Request) {
   const action = String(body.action || "");
 
   try {
+    if (
+      action === "save_bot_settings" ||
+      action === "publish_bot_settings" ||
+      action === "restore_bot_settings"
+    ) {
+      await ensureBotContentSettingsTable();
+    }
+
     if (action === "create_student") {
       const realName = String(body.real_name || "").trim();
       if (!realName) return Response.json({ error: "Укажите имя ученика" }, { status: 400 });
@@ -291,6 +300,18 @@ export async function POST(request: Request) {
     if (dbUnavailable(error)) return Response.json({ error: "DATABASE_URL is not set" }, { status: 503 });
     throw error;
   }
+}
+
+async function ensureBotContentSettingsTable() {
+  await query(`
+    create table if not exists bot_content_settings (
+      id smallint primary key default 1 check (id = 1),
+      draft jsonb not null default '{}'::jsonb,
+      published jsonb not null default '{}'::jsonb,
+      updated_at timestamptz not null default now(),
+      published_at timestamptz
+    )
+  `);
 }
 
 function clean(value: unknown) {
