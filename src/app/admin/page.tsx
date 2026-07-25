@@ -98,6 +98,17 @@ const pageText = {
   },
 } as const;
 
+const statusKeys = [
+  "signingIn",
+  "loginError",
+  "signedIn",
+  "updated",
+  "loadError",
+  "saving",
+  "textsSaved",
+  "saveError",
+] as const;
+
 function cloneContent(): SiteContent {
   return JSON.parse(JSON.stringify(content)) as SiteContent;
 }
@@ -173,6 +184,14 @@ export default function AdminPage() {
     setStatus(res.ok ? c.textsSaved : c.saveError);
   }
 
+  function changeAdminLanguage(next: AdminLang) {
+    const statusKey = statusKeys.find(
+      (key) => pageText[adminLang][key] === status,
+    );
+    setAdminLang(next);
+    if (statusKey) setStatus(pageText[next][statusKey]);
+  }
+
   if (!token) {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-[#f6f2ea] px-4 text-[#172033]">
@@ -180,7 +199,7 @@ export default function AdminPage() {
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#087bd3]">
             {c.brand}
           </p>
-          <LanguageToggle value={adminLang} onChange={setAdminLang} />
+          <LanguageToggle value={adminLang} onChange={changeAdminLanguage} />
           <h1 className="mt-2 text-2xl font-black">{c.login}</h1>
           <div className="mt-5 grid gap-3">
             <TextField
@@ -245,7 +264,7 @@ export default function AdminPage() {
             >
               {c.logout}
             </button>
-            <LanguageToggle value={adminLang} onChange={setAdminLang} />
+            <LanguageToggle value={adminLang} onChange={changeAdminLanguage} />
           </div>
         </div>
         {status && (
