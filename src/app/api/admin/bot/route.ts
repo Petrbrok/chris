@@ -1,4 +1,8 @@
 import { isAuthorized } from "@/lib/admin";
+import {
+  defaultBotContent,
+  normalizeBotContent,
+} from "@/lib/bot-content";
 import { dbUnavailable, getPool, query } from "@/lib/db";
 import { randomBytes } from "node:crypto";
 import { fetch as undiciFetch, ProxyAgent } from "undici";
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
   if (!isAuthorized(request)) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   try {
-    const [students, submissions, slots, templates] = await Promise.all([
+    const [students, submissions, slots, templates, settings] = await Promise.all([
       query(`select s.*,
         count(distinct vs.id)::int as recordings_count,
         count(distinct sa.id) filter (where sa.status in ('submitted', 'reviewed'))::int as completed_count
@@ -47,13 +51,19 @@ export async function GET(request: Request) {
         from bot_assignment_templates t
         left join bot_student_assignments sa on sa.template_id = t.id
         group by t.id order by t.sort_order, t.id`),
+      query("select draft, published, updated_at, published_at from bot_content_settings where id = 1"),
     ]);
 
+    const savedSettings = settings.rows[0];
     return Response.json({
       students: students.rows,
       submissions: submissions.rows,
       slots: slots.rows,
       templates: templates.rows,
+      bot_settings: savedSettings?.draft || defaultBotContent,
+      bot_settings_published: savedSettings?.published || defaultBotContent,
+      bot_settings_updated_at: savedSettings?.updated_at || null,
+      bot_settings_published_at: savedSettings?.published_at || null,
     });
   } catch (error) {
     if (dbUnavailable(error)) return Response.json({ error: "DATABASE_URL is not set" }, { status: 503 });
@@ -181,6 +191,101 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
 
+    if (action === "save_template") {
+      const id = positiveId(body.id);
+      const values = {
+        slug: cleanSlug(body.slug),
+        category: clean(body.category) || "explain",
+        difficulty: clean(body.difficulty) || "any",
+        titleRu: requiredText(body.title_ru, 160),
+        titleEn: requiredText(body.title_en, 160),
+        promptRu: requiredText(body.prompt_ru, 4000),
+        promptEn: requiredText(body.prompt_en, 4000),
+        responseKind: body.response_kind === "text" ? "text" : "voice",
+        sortOrder: Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0,
+        active: body.active !== false,
+      };
+      if (!values.titleRu || !values.titleEn || !values.promptRu || !values.promptEn) {
+        return Response.json({ error: "Заполните названия и тексты на двух языках" }, { status: 400 });
+      }
+      if (id) {
+        const result = await query(
+          `update bot_assignment_templates
+           set slug = $2, category = $3, difficulty = $4, title_ru = $5, title_en = $6,
+               prompt_ru = $7, prompt_en = $8, response_kind = $9, sort_order = $10, active = $11
+           where id = $1 returning *`,
+          [
+            id,
+            values.slug || `task-${id}`,
+            values.category,
+            values.difficulty,
+            values.titleRu,
+            values.titleEn,
+            values.promptRu,
+            values.promptEn,
+            values.responseKind,
+            values.sortOrder,
+            values.active,
+          ],
+        );
+        return Response.json({ ok: true, template: result.rows[0] });
+      }
+      const result = await query(
+        `insert into bot_assignment_templates
+         (slug, category, difficulty, title_ru, title_en, prompt_ru, prompt_en, response_kind, sort_order, active)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) returning *`,
+        [
+          values.slug || `task-${Date.now()}`,
+          values.category,
+          values.difficulty,
+          values.titleRu,
+          values.titleEn,
+          values.promptRu,
+          values.promptEn,
+          values.responseKind,
+          values.sortOrder,
+          values.active,
+        ],
+      );
+      return Response.json({ ok: true, template: result.rows[0] });
+    }
+
+    if (action === "save_bot_settings") {
+      const settings = normalizeBotContent(body.settings);
+      await query(
+        `insert into bot_content_settings (id, draft, published)
+         values (1, $1::jsonb, $2::jsonb)
+         on conflict (id) do update set draft = excluded.draft, updated_at = now()`,
+        [JSON.stringify(settings), JSON.stringify(defaultBotContent)],
+      );
+      return Response.json({ ok: true, settings });
+    }
+
+    if (action === "publish_bot_settings") {
+      const settings = normalizeBotContent(body.settings);
+      await query(
+        `insert into bot_content_settings (id, draft, published)
+         values (1, $1::jsonb, $1::jsonb)
+         on conflict (id) do update
+         set draft = excluded.draft, published = excluded.published,
+             updated_at = now(), published_at = now()`,
+        [JSON.stringify(settings)],
+      );
+      return Response.json({ ok: true, settings });
+    }
+
+    if (action === "restore_bot_settings") {
+      const result = await query(
+        `update bot_content_settings
+         set draft = published, updated_at = now()
+         where id = 1 returning draft`,
+      );
+      return Response.json({
+        ok: true,
+        settings: result.rows[0]?.draft || defaultBotContent,
+      });
+    }
+
     return Response.json({ error: "Неизвестное действие" }, { status: 400 });
   } catch (error) {
     if (dbUnavailable(error)) return Response.json({ error: "DATABASE_URL is not set" }, { status: 503 });
@@ -196,6 +301,20 @@ function clean(value: unknown) {
 function positiveId(value: unknown) {
   const id = Number(value);
   return Number.isSafeInteger(id) && id > 0 ? id : 0;
+}
+
+function requiredText(value: unknown, max: number) {
+  return String(value ?? "").trim().slice(0, max);
+}
+
+function cleanSlug(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
 }
 
 async function uniqueInviteCode() {

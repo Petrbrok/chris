@@ -251,6 +251,14 @@ create table if not exists bot_runtime_state (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists bot_content_settings (
+  id smallint primary key default 1 check (id = 1),
+  draft jsonb not null,
+  published jsonb not null,
+  updated_at timestamptz not null default now(),
+  published_at timestamptz not null default now()
+);
+
 create index if not exists bot_students_status_idx on bot_students(status);
 create index if not exists bot_voice_pending_idx on bot_voice_submissions(status, created_at desc);
 create index if not exists bot_slots_available_idx on bot_availability_slots(status, starts_at);

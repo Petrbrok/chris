@@ -114,6 +114,15 @@ const copy = {
     chooseSlot: "Выберите свободное окно. Время указано по Москве:",
     booked: "Запись подтверждена. Крис получил уведомление.",
     slotGone: "Это окно уже занято. Выберите другое.",
+    chooseLanguage: "Выберите язык",
+    progressSummary:
+      "📈 <b>Ваш прогресс</b>\n\nВыполнено заданий: {completed}\nПроверено Крисом: {reviewed}\nГолосовых записей: {recordings}",
+    recordingsHeading: "🎧 Ваши последние записи:",
+    practiceTitle: "Разговорная практика",
+    feedbackLabel: "Комментарий Криса",
+    waitingFeedback: "Ожидает проверки Криса",
+    onlineMode: "дистанционно",
+    offlineMode: "очно",
     back: "← Назад",
   },
   en: {
@@ -147,9 +156,56 @@ const copy = {
     chooseSlot: "Choose an available time. Times are shown in Moscow time:",
     booked: "Your lesson is booked. Chris has been notified.",
     slotGone: "This time is no longer available. Please choose another.",
+    chooseLanguage: "Choose language",
+    progressSummary:
+      "📈 <b>Your progress</b>\n\nTasks completed: {completed}\nReviewed by Chris: {reviewed}\nVoice recordings: {recordings}",
+    recordingsHeading: "🎧 Your latest recordings:",
+    practiceTitle: "Speaking practice",
+    feedbackLabel: "Chris's feedback",
+    waitingFeedback: "Waiting for Chris's feedback",
+    onlineMode: "online",
+    offlineMode: "in person",
     back: "← Back",
   },
 };
+
+let runtimeMenu = [
+  {
+    id: "task",
+    action: "task",
+    icon: "🎙",
+    enabled: true,
+    label: { ru: "Задание", en: "Task" },
+  },
+  {
+    id: "progress",
+    action: "progress",
+    icon: "📈",
+    enabled: true,
+    label: { ru: "Мой прогресс", en: "My progress" },
+  },
+  {
+    id: "recordings",
+    action: "recordings",
+    icon: "🎧",
+    enabled: true,
+    label: { ru: "Мои голосовые", en: "My recordings" },
+  },
+  {
+    id: "booking",
+    action: "booking",
+    icon: "🗓",
+    enabled: true,
+    label: { ru: "Записаться", en: "Book a lesson" },
+  },
+];
+let runtimePages = [];
+const allowedMenuActions = new Set([
+  "task",
+  "progress",
+  "recordings",
+  "booking",
+]);
 
 const adminCopy = {
   ru: {
@@ -446,17 +502,25 @@ async function showStart(chatId, user, messageId = null) {
 async function showMenu(chatId, student, messageId = null) {
   const lang = languageOf(student);
   const t = copy[lang];
-  const rows = [
-    [
-      { text: `🎙 ${t.task}`, callback_data: "menu:task" },
-      { text: `📈 ${t.progress}`, callback_data: "menu:progress" },
-    ],
-    [
-      { text: `🎧 ${t.recordings}`, callback_data: "menu:recordings" },
-      { text: `🗓 ${t.booking}`, callback_data: "menu:booking" },
-    ],
-    [{ text: `🌐 ${t.language}`, callback_data: "menu:language" }],
-  ];
+  const buttons = runtimeMenu
+    .filter((item) => item.enabled && allowedMenuActions.has(item.action))
+    .map((item) => ({
+      text: `${item.icon || ""} ${item.label?.[lang] || t[item.action] || item.action}`.trim(),
+      callback_data: `menu:${item.action}`,
+    }));
+  const rows = [];
+  for (let index = 0; index < buttons.length; index += 2) {
+    rows.push(buttons.slice(index, index + 2));
+  }
+  for (const page of runtimePages.filter((item) => item.enabled)) {
+    rows.push([
+      {
+        text: page.menuLabel?.[lang] || page.title?.[lang] || page.id,
+        callback_data: `page:${page.id}`,
+      },
+    ]);
+  }
+  rows.push([{ text: `🌐 ${t.language}`, callback_data: "menu:language" }]);
   if (isAdmin(student.telegram_user_id))
     rows.push([
       {
@@ -685,6 +749,30 @@ async function handleCallback(callback) {
     return handleAdminCallback(data, chatId, messageId, user);
   }
 
+  if (data.startsWith("page:")) {
+    const pageId = data.slice(5);
+    const page = runtimePages.find(
+      (item) => item.enabled && item.id === pageId,
+    );
+    if (!page) return showMenu(chatId, student, messageId);
+    const rows = [];
+    if (page.linkUrl && /^https:\/\//i.test(page.linkUrl)) {
+      rows.push([
+        {
+          text: page.linkLabel?.[lang] || (lang === "en" ? "Open" : "Открыть"),
+          url: page.linkUrl,
+        },
+      ]);
+    }
+    rows.push([{ text: copy[lang].back, callback_data: "menu:home" }]);
+    return render(
+      chatId,
+      messageId,
+      `<b>${escapeHtml(page.title?.[lang] || page.menuLabel?.[lang] || "")}</b>\n\n${escapeHtml(page.text?.[lang] || "")}`,
+      inlineKeyboard(rows),
+    );
+  }
+
   if (data === "menu:task") return showNextTask(chatId, student, messageId);
   if (data === "menu:progress") return showProgress(chatId, student, messageId);
   if (data === "menu:recordings")
@@ -694,7 +782,7 @@ async function handleCallback(callback) {
     return render(
       chatId,
       messageId,
-      "Выберите язык / Choose language",
+      copy[lang].chooseLanguage,
       inlineKeyboard([
         [
           { text: "Русский", callback_data: "lang:ru" },
@@ -853,10 +941,11 @@ async function showProgress(chatId, student, messageId = null) {
   );
   const stats = result.rows[0];
   const lang = languageOf(student);
-  const text =
-    lang === "en"
-      ? `📈 <b>Your progress</b>\n\nTasks completed: ${stats.completed}\nReviewed by Chris: ${stats.reviewed}\nVoice recordings: ${recordings.rows[0].total}`
-      : `📈 <b>Ваш прогресс</b>\n\nВыполнено заданий: ${stats.completed}\nПроверено Крисом: ${stats.reviewed}\nГолосовых записей: ${recordings.rows[0].total}`;
+  const text = fillTemplate(copy[lang].progressSummary, {
+    completed: stats.completed,
+    reviewed: stats.reviewed,
+    recordings: recordings.rows[0].total,
+  });
   await render(chatId, messageId, text, homeButton(lang));
 }
 
@@ -875,15 +964,15 @@ async function showRecordings(chatId, student, messageId = null) {
   await render(
     chatId,
     messageId,
-    lang === "en" ? "🎧 Your latest recordings:" : "🎧 Ваши последние записи:",
+    copy[lang].recordingsHeading,
     homeButton(lang),
   );
   for (const row of result.rows) {
     const title =
-      (lang === "en" ? row.title_en : row.title_ru) || "Speaking practice";
+      (lang === "en" ? row.title_en : row.title_ru) || copy[lang].practiceTitle;
     const feedback = row.teacher_feedback
-      ? `\n\n${lang === "en" ? "Chris's feedback" : "Комментарий Криса"}: ${row.teacher_feedback}`
-      : `\n\n${lang === "en" ? "Waiting for Chris's feedback" : "Ожидает проверки Криса"}`;
+      ? `\n\n${copy[lang].feedbackLabel}: ${row.teacher_feedback}`
+      : `\n\n${copy[lang].waitingFeedback}`;
     await telegram("sendVoice", {
       chat_id: chatId,
       voice: row.telegram_file_id,
@@ -903,7 +992,7 @@ async function showSlots(chatId, student, messageId = null) {
     return render(chatId, messageId, copy[lang].noSlots, homeButton(lang));
   const rows = result.rows.map((slot) => [
     {
-      text: `${formatMoscow(slot.starts_at, lang)} · ${slot.lesson_mode === "online" ? "онлайн" : "очно"}`,
+      text: `${formatMoscow(slot.starts_at, lang)} · ${slot.lesson_mode === "online" ? copy[lang].onlineMode : copy[lang].offlineMode}`,
       callback_data: `book:${slot.id}`,
     },
   ]);
@@ -978,6 +1067,12 @@ function escapeHtml(value) {
   return String(value).replace(
     /[&<>]/g,
     (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character],
+  );
+}
+
+function fillTemplate(template, values) {
+  return String(template).replace(/\{([a-z_]+)\}/gi, (match, key) =>
+    Object.hasOwn(values, key) ? escapeHtml(values[key]) : match,
   );
 }
 
@@ -1760,8 +1855,52 @@ async function notifyAdmins(messages) {
 }
 
 export async function processUpdate(update) {
+  await refreshBotContent();
   if (update.message) await handleMessage(update.message);
   if (update.callback_query) await handleCallback(update.callback_query);
+}
+
+async function refreshBotContent() {
+  try {
+    const result = await pool.query(
+      "select published from bot_content_settings where id = 1",
+    );
+    const settings = result.rows[0]?.published;
+    if (!settings || typeof settings !== "object") return;
+    for (const lang of ["ru", "en"]) {
+      const values = settings.copy?.[lang];
+      if (!values || typeof values !== "object") continue;
+      for (const key of Object.keys(copy[lang])) {
+        if (typeof values[key] === "string" && values[key].trim()) {
+          copy[lang][key] = values[key].slice(0, 4000);
+        }
+      }
+    }
+    if (Array.isArray(settings.menu)) {
+      runtimeMenu = settings.menu
+        .slice(0, 12)
+        .filter(
+          (item) =>
+            item &&
+            typeof item === "object" &&
+            allowedMenuActions.has(String(item.action)),
+        );
+    }
+    if (Array.isArray(settings.pages)) {
+      runtimePages = settings.pages
+        .slice(0, 20)
+        .filter(
+          (page) =>
+            page &&
+            typeof page === "object" &&
+            /^[a-z0-9-]{1,32}$/.test(String(page.id)),
+        );
+    }
+  } catch (error) {
+    if (!String(error?.message || "").includes("bot_content_settings")) {
+      console.error("Bot content refresh failed:", error?.message || error);
+    }
+  }
 }
 
 export async function configureBot() {

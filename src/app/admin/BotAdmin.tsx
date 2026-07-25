@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { BotContentSettings } from "@/lib/bot-content";
+import BotContentEditor from "./BotContentEditor";
 
 type Row = Record<string, unknown>;
-type Section = "students" | "review" | "calendar" | "tasks";
+type Section = "students" | "review" | "calendar" | "tasks" | "content";
 export type AdminLang = "ru" | "en";
 
 const adminText = {
   ru: {
-    sections: ["Ученики", "Проверка голосовых", "Расписание", "Задания"],
+    sections: ["Ученики", "Проверка голосовых", "Расписание", "Задания", "Настройка помощника"],
     loading: "Загрузка…",
     loadError: "Не удалось загрузить данные",
     saved: "Сохранено",
@@ -90,7 +92,7 @@ const adminText = {
     assigned: "назначено",
   },
   en: {
-    sections: ["Students", "Voice review", "Schedule", "Assignments"],
+    sections: ["Students", "Voice review", "Schedule", "Assignments", "Bot setup"],
     loading: "Loading…",
     loadError: "Could not load data",
     saved: "Saved",
@@ -182,10 +184,10 @@ export default function BotAdmin({
 }) {
   const c = adminText[lang];
   const sections: Array<{ key: Section; label: string }> = (
-    ["students", "review", "calendar", "tasks"] as Section[]
+    ["students", "review", "calendar", "tasks", "content"] as Section[]
   ).map((key, index) => ({ key, label: c.sections[index] }));
   const [section, setSection] = useState<Section>("students");
-  const [data, setData] = useState<Record<string, Row[]>>({});
+  const [data, setData] = useState<AdminData>({});
   const [status, setStatus] = useState<string>(c.loading);
   const [busy, setBusy] = useState(false);
 
@@ -247,6 +249,8 @@ export default function BotAdmin({
   const submissions = data.submissions || [];
   const slots = data.slots || [];
   const templates = data.templates || [];
+  const botSettings = data.bot_settings;
+  const publishedSettings = data.bot_settings_published;
   const pending = submissions.filter(
     (item) => item.status === "pending",
   ).length;
@@ -323,6 +327,16 @@ export default function BotAdmin({
       ) : null}
       {section === "tasks" ? (
         <Tasks rows={templates} busy={busy} act={act} lang={lang} />
+      ) : null}
+      {section === "content" && botSettings && publishedSettings ? (
+        <BotContentEditor
+          key={data.bot_settings_updated_at || "default"}
+          settings={botSettings}
+          published={publishedSettings}
+          busy={busy}
+          act={act}
+          lang={lang}
+        />
       ) : null}
     </div>
   );
@@ -818,44 +832,204 @@ function Tasks({
   lang: AdminLang;
 }) {
   const c = adminText[lang];
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const createKey = "new";
   return (
     <Panel title={`${c.library} · ${rows.length}`} note={c.libraryNote}>
+      <div className="flex justify-end">
+        <Primary disabled={busy} onClick={() => setEditingId(createKey)}>
+          {lang === "ru" ? "Добавить задание" : "Add assignment"}
+        </Primary>
+      </div>
+      {editingId === createKey ? (
+        <TaskForm
+          row={null}
+          busy={busy}
+          act={act}
+          lang={lang}
+          onClose={() => setEditingId(null)}
+        />
+      ) : null}
       <div className="grid gap-3 md:grid-cols-2">
-        {rows.map((row) => (
-          <article
-            key={text(row.id)}
-            className={`rounded-2xl border p-4 ${row.active ? "border-[#087bd3]/14 bg-[#f6f2ea]" : "border-[#172033]/8 bg-[#172033]/4 opacity-60"}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-black">
-                  {text(lang === "ru" ? row.title_ru : row.title_en)}
-                </p>
-                <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-[#087bd3]">
-                  {translateTaskMeta(text(row.category), lang)} ·{" "}
-                  {translateTaskMeta(text(row.difficulty), lang)}
-                </p>
+        {rows.map((row) => {
+          const id = text(row.id);
+          return editingId === id ? (
+            <TaskForm
+              key={id}
+              row={row}
+              busy={busy}
+              act={act}
+              lang={lang}
+              onClose={() => setEditingId(null)}
+            />
+          ) : (
+            <article
+              key={id}
+              className={`rounded-2xl border p-4 ${row.active ? "border-[#087bd3]/14 bg-[#f6f2ea]" : "border-[#172033]/8 bg-[#172033]/4 opacity-60"}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-black">
+                    {text(lang === "ru" ? row.title_ru : row.title_en)}
+                  </p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-[#087bd3]">
+                    {translateTaskMeta(text(row.category), lang)} ·{" "}
+                    {translateTaskMeta(text(row.difficulty), lang)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => act("toggle_template", { id: row.id })}
+                  className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#42506a]"
+                >
+                  {row.active ? c.enabled : c.disabled}
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => act("toggle_template", { id: row.id })}
-                className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#42506a]"
-              >
-                {row.active ? c.enabled : c.disabled}
-              </button>
-            </div>
-            <p className="mt-3 text-sm font-semibold leading-6 text-[#42506a]">
-              {text(lang === "ru" ? row.prompt_ru : row.prompt_en)}
-            </p>
-            <p className="mt-3 text-xs font-bold text-[#9b5f08]">
-              {c.completed}: {text(row.completed_count)} · {c.assigned}:{" "}
-              {text(row.assigned_count)}
-            </p>
-          </article>
-        ))}
+              <p className="mt-3 text-sm font-semibold leading-6 text-[#42506a]">
+                {text(lang === "ru" ? row.prompt_ru : row.prompt_en)}
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <p className="text-xs font-bold text-[#9b5f08]">
+                  {c.completed}: {text(row.completed_count)} · {c.assigned}:{" "}
+                  {text(row.assigned_count)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setEditingId(id)}
+                  className="text-xs font-black text-[#087bd3]"
+                >
+                  {lang === "ru" ? "Изменить" : "Edit"}
+                </button>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </Panel>
+  );
+}
+
+function TaskForm({
+  row,
+  busy,
+  act,
+  lang,
+  onClose,
+}: {
+  row: Row | null;
+  busy: boolean;
+  act: Action;
+  lang: AdminLang;
+  onClose: () => void;
+}) {
+  const [values, setValues] = useState(() => ({
+    slug: text(row?.slug),
+    category: text(row?.category) || "explain",
+    difficulty: text(row?.difficulty) || "any",
+    title_ru: text(row?.title_ru),
+    title_en: text(row?.title_en),
+    prompt_ru: text(row?.prompt_ru),
+    prompt_en: text(row?.prompt_en),
+    response_kind: text(row?.response_kind) || "voice",
+    sort_order: text(row?.sort_order) || "0",
+    active: row?.active !== false,
+  }));
+
+  function update(key: string, value: string | boolean) {
+    setValues((current) => ({ ...current, [key]: value }));
+  }
+
+  async function save() {
+    if (await act("save_template", { id: row?.id, ...values })) onClose();
+  }
+
+  return (
+    <article className="col-span-full grid gap-4 rounded-2xl border-2 border-[#087bd3]/20 bg-[#f7fbff] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-lg font-black">
+          {lang === "ru"
+            ? row
+              ? "Изменение задания"
+              : "Новое задание"
+            : row
+              ? "Edit assignment"
+              : "New assignment"}
+        </h4>
+        <label className="flex items-center gap-2 text-sm font-black">
+          <input
+            type="checkbox"
+            checked={values.active}
+            onChange={(event) => update("active", event.target.checked)}
+            className="size-4 accent-[#087bd3]"
+          />
+          {lang === "ru" ? "Доступно ученикам" : "Available to students"}
+        </label>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Field
+          label={lang === "ru" ? "Название на русском" : "Russian title"}
+          value={values.title_ru}
+          onChange={(value) => update("title_ru", value)}
+        />
+        <Field
+          label={lang === "ru" ? "Название на английском" : "English title"}
+          value={values.title_en}
+          onChange={(value) => update("title_en", value)}
+        />
+        <Area
+          label={lang === "ru" ? "Задание на русском" : "Russian prompt"}
+          value={values.prompt_ru}
+          onChange={(value) => update("prompt_ru", value)}
+        />
+        <Area
+          label={lang === "ru" ? "Задание на английском" : "English prompt"}
+          value={values.prompt_en}
+          onChange={(value) => update("prompt_en", value)}
+        />
+        <Field
+          label={lang === "ru" ? "Служебное название" : "Internal name"}
+          value={values.slug}
+          onChange={(value) => update("slug", value)}
+          placeholder="new-assignment"
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <Select
+            label={lang === "ru" ? "Сложность" : "Difficulty"}
+            value={values.difficulty}
+            onChange={(value) => update("difficulty", value)}
+            options={[
+              ["any", lang === "ru" ? "Любая" : "Any"],
+              ["beginner", lang === "ru" ? "Начальная" : "Beginner"],
+              ["intermediate", lang === "ru" ? "Средняя" : "Intermediate"],
+            ]}
+          />
+          <Field
+            label={lang === "ru" ? "Порядок" : "Order"}
+            value={values.sort_order}
+            onChange={(value) => update("sort_order", value)}
+            type="number"
+          />
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Primary
+          disabled={
+            busy ||
+            !values.title_ru.trim() ||
+            !values.title_en.trim() ||
+            !values.prompt_ru.trim() ||
+            !values.prompt_en.trim()
+          }
+          onClick={save}
+        >
+          {lang === "ru" ? "Сохранить задание" : "Save assignment"}
+        </Primary>
+        <Secondary disabled={busy} onClick={onClose}>
+          {lang === "ru" ? "Отмена" : "Cancel"}
+        </Secondary>
+      </div>
+    </article>
   );
 }
 
@@ -863,6 +1037,17 @@ type Action = (
   action: string,
   payload?: Record<string, unknown>,
 ) => Promise<boolean>;
+
+type AdminData = {
+  students?: Row[];
+  submissions?: Row[];
+  slots?: Row[];
+  templates?: Row[];
+  bot_settings?: BotContentSettings;
+  bot_settings_published?: BotContentSettings;
+  bot_settings_updated_at?: string | null;
+  bot_settings_published_at?: string | null;
+};
 
 function Panel({
   title,
