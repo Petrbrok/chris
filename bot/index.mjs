@@ -384,14 +384,61 @@ async function telegram(method, body = {}) {
   return result.result;
 }
 
+const premiumEmojiIds = {
+  "⚙️": "5870982283724328568",
+  "👤": "5870994129244131212",
+  "👥": "5870772616305839506",
+  "📈": "5870930636742595124",
+  "🎙": "6035128606563241721",
+  "🎧": "6035128606563241721",
+  "🗓": "5890937706803894250",
+  "🌐": "5769289093221454192",
+  "🎯": "5870753782874246579",
+  "🔄": "5345906554510012647",
+  "🔑": "5940433880585605708",
+  "🟢": "5870633910337015697",
+  "🔴": "5870657884844462243",
+  "⚪": "6028435952299413210",
+  "💻": "6030400221232501136",
+  "🏫": "5873147866364514353",
+  "🎙️": "6035128606563241721",
+};
+const premiumActionIds = {
+  task: "6035128606563241721",
+  progress: "5870930636742595124",
+  recordings: "6035128606563241721",
+  booking: "5890937706803894250",
+  language: "5769289093221454192",
+};
+const actionFallbackEmoji = {
+  task: "🎙️",
+  progress: "📈",
+  recordings: "🎧",
+  booking: "🗓️",
+  language: "🌐",
+};
+
+function premiumizeText(text) {
+  const emojis = Object.keys(premiumEmojiIds).sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(emojis.map((emoji) => emoji.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "gu");
+  return text.replace(pattern, (emoji) => `<tg-emoji emoji-id="${premiumEmojiIds[emoji]}">${emoji}</tg-emoji>`);
+}
+
+function premiumizeButton(button) {
+  if (!button?.text) return button;
+  const match = button.text.match(/^(⚙️|👤|👥|📈|🎙️?|🎧|🗓|🌐|🎯|🔄|🔑|🟢|🔴|⚪|💻|🏫)\s*/u);
+  if (!match) return button;
+  return button;
+}
+
 function inlineKeyboard(rows) {
-  return { reply_markup: { inline_keyboard: rows } };
+  return { reply_markup: { inline_keyboard: rows.map((row) => row.map(premiumizeButton)) } };
 }
 
 async function send(chatId, text, extra = {}) {
   return telegram("sendMessage", {
     chat_id: chatId,
-    text,
+    text: premiumizeText(text),
     parse_mode: "HTML",
     ...extra,
   });
@@ -403,7 +450,7 @@ async function render(chatId, messageId, text, extra = {}) {
     return await telegram("editMessageText", {
       chat_id: chatId,
       message_id: messageId,
-      text,
+      text: premiumizeText(text),
       parse_mode: "HTML",
       ...extra,
     });
@@ -505,7 +552,7 @@ async function showMenu(chatId, student, messageId = null) {
   const buttons = runtimeMenu
     .filter((item) => item.enabled && allowedMenuActions.has(item.action))
     .map((item) => ({
-      text: `${item.icon || ""} ${item.label?.[lang] || t[item.action] || item.action}`.trim(),
+      text: `${actionFallbackEmoji[item.action]} ${item.label?.[lang] || t[item.action] || item.action}`.trim(),
       callback_data: `menu:${item.action}`,
     }));
   const rows = [];
