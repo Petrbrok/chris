@@ -20,17 +20,20 @@ import {
   navLinks,
 } from "@/lib/site";
 import { content } from "@/lib/site";
+import type { SiteContent } from "@/lib/site-overrides";
+import { OfferStrip } from "@/components/OfferStrip";
 
-export function SpeakingClubPage({ lang }: { lang: Lang }) {
-  const copy = content[lang];
+export function SpeakingClubPage({ lang, siteContent = content }: { lang: Lang; siteContent?: SiteContent }) {
+  const copy = siteContent[lang];
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#f6f2ea] pb-24 text-[#172033]">
       <SpeakingClubBackground />
       <PageHeader lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <OfferStrip offers={copy.offers} />
 
-      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pt-24 sm:px-8 sm:pt-28">
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pt-8 sm:px-8 sm:pt-10">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}

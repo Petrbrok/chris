@@ -1,5 +1,13 @@
 export type Lang = "ru" | "en";
 export type TestKind = "grammar" | "vocabulary" | "speaking";
+export type TestQuestion = {
+  id: string;
+  difficulty: 1 | 2 | 3 | 4 | 5 | 6;
+  q: string;
+  options: readonly string[];
+  answer: string;
+  explain: string;
+};
 
 export const theme = {
   accent: "#f3a51d",
@@ -44,6 +52,12 @@ export const content = {
     book: "Book",
     trial: "Book a Trial Lesson",
     clubCta: "Join Speaking Club",
+    offers: {
+      title: "A good way to start",
+      trial: "Your first lesson is free",
+      testDiscount: "Complete a level test and get 10% off your second lesson",
+      referral: "Invite a friend and you both get 10% off",
+    },
     quote: "\"Don't translate. Explain.\"",
     quoteCaption: "Chris's teaching philosophy.",
     heroTitle: "Speak English Naturally Without Translating in Your Head",
@@ -143,6 +157,12 @@ export const content = {
     book: "Записаться",
     trial: "Записаться на пробный урок",
     clubCta: "В Speaking Club",
+    offers: {
+      title: "Начните с выгодой",
+      trial: "Первый урок всегда бесплатно",
+      testDiscount: "Пройдите тест и получите скидку 10% на второй урок",
+      referral: "Приведите друга и получите по 10% скидки каждый",
+    },
     quote: "\"Не переводи. Объясняй.\"",
     quoteCaption: "Так Крис помогает ученикам начать думать по-английски.",
     heroTitle: "Заговорите на английском естественно без перевода в голове",
@@ -236,35 +256,46 @@ export const content = {
 
 export const navIds = ["about", "method", "club", "tests", "prices", "contacts"] as const;
 
-export const grammarQuestions = [
-  { q: "I have lived here ___ 2020.", options: ["since", "for", "from"], answer: "since", explain: "Use since with a starting point." },
-  { q: "She ___ to London last week.", options: ["went", "has gone", "goes"], answer: "went", explain: "Last week is finished time, so Past Simple." },
-  { q: "If I ___ time, I will call you.", options: ["have", "will have", "had"], answer: "have", explain: "First conditional uses present after if." },
-  { q: "This is the person ___ helped me.", options: ["who", "which", "where"], answer: "who", explain: "Use who for people." },
-  { q: "I am interested ___ speaking practice.", options: ["in", "on", "at"], answer: "in", explain: "Interested in is the fixed phrase." },
-  { q: "There ___ many people in the room.", options: ["were", "was", "is"], answer: "were", explain: "People is plural, so use were." },
-  { q: "I ___ already finished my homework.", options: ["have", "did", "am"], answer: "have", explain: "Already often works with Present Perfect." },
-  { q: "Could you tell me where ___?", options: ["the station is", "is the station", "the station"], answer: "the station is", explain: "Indirect questions use normal word order." },
-  { q: "He is good ___ explaining ideas.", options: ["at", "in", "for"], answer: "at", explain: "Good at is the fixed phrase." },
-  { q: "I used to ___ a lot when I was younger.", options: ["read", "reading", "reads"], answer: "read", explain: "Used to is followed by base verb." },
-  { q: "This coffee is ___ hot to drink.", options: ["too", "enough", "so"], answer: "too", explain: "Too means more than needed or possible." },
-  { q: "She asked me ___ I was tired.", options: ["if", "that", "what"], answer: "if", explain: "Use if for yes/no reported questions." },
-  { q: "I look forward to ___ you.", options: ["seeing", "see", "saw"], answer: "seeing", explain: "Look forward to is followed by -ing." },
-  { q: "The book ___ I bought is very useful.", options: ["that", "who", "where"], answer: "that", explain: "That can refer to a thing." },
-  { q: "You ___ wear a seatbelt.", options: ["must", "can to", "should to"], answer: "must", explain: "Must is followed by base verb." },
+export const grammarQuestions: readonly TestQuestion[] = [
+  { id: "g1", difficulty: 1, q: "There ___ two books on the table.", options: ["is", "are", "be"], answer: "are", explain: "Use are with a plural noun." },
+  { id: "g2", difficulty: 1, q: "She ___ coffee every morning.", options: ["drink", "drinks", "drinking"], answer: "drinks", explain: "Use -s with he, she, or it in Present Simple." },
+  { id: "g3", difficulty: 1, q: "We ___ at home yesterday.", options: ["was", "were", "are"], answer: "were", explain: "We takes were in the past." },
+  { id: "g4", difficulty: 2, q: "I have lived here ___ 2020.", options: ["for", "since", "from"], answer: "since", explain: "Use since with a starting point." },
+  { id: "g5", difficulty: 2, q: "If I ___ time, I will call you.", options: ["will have", "had", "have"], answer: "have", explain: "First conditional uses present after if." },
+  { id: "g6", difficulty: 2, q: "This coffee is ___ hot to drink.", options: ["enough", "too", "such"], answer: "too", explain: "Too means more than is possible or desirable." },
+  { id: "g7", difficulty: 3, q: "Could you tell me where ___?", options: ["is the station", "the station is", "does the station"], answer: "the station is", explain: "Indirect questions use normal word order." },
+  { id: "g8", difficulty: 3, q: "I look forward to ___ you.", options: ["see", "saw", "seeing"], answer: "seeing", explain: "Look forward to is followed by an -ing form." },
+  { id: "g9", difficulty: 3, q: "By the time we arrived, the film ___ .", options: ["started", "has started", "had started"], answer: "had started", explain: "Past Perfect marks the earlier past action." },
+  { id: "g10", difficulty: 4, q: "I wish I ___ more confident when speaking.", options: ["am", "were", "will be"], answer: "were", explain: "Wish about the present uses a past form." },
+  { id: "g11", difficulty: 4, q: "Not only ___ late, but he also forgot the documents.", options: ["he was", "was he", "he is"], answer: "was he", explain: "Negative fronting requires subject-verb inversion." },
+  { id: "g12", difficulty: 4, q: "The proposal, ___ was submitted yesterday, needs revision.", options: ["that", "which", "what"], answer: "which", explain: "A non-defining relative clause uses which." },
+  { id: "g13", difficulty: 5, q: "Had I known about the delay, I ___ a later train.", options: ["would take", "would have taken", "had taken"], answer: "would have taken", explain: "This is an inverted third conditional." },
+  { id: "g14", difficulty: 5, q: "It is essential that every applicant ___ the form personally.", options: ["signs", "signed", "sign"], answer: "sign", explain: "The mandative subjunctive uses the base form." },
+  { id: "g15", difficulty: 5, q: "No sooner ___ the meeting than the fire alarm went off.", options: ["we started", "had we started", "we had started"], answer: "had we started", explain: "No sooner triggers inversion with Past Perfect." },
+  { id: "g16", difficulty: 6, q: "The evidence is inconclusive, ___ compelling it may initially appear.", options: ["however", "despite", "although"], answer: "however", explain: "However + adjective introduces a concessive clause." },
+  { id: "g17", difficulty: 6, q: "Were the policy ___, the consequences would be far-reaching.", options: ["to implement", "implemented", "implementing"], answer: "implemented", explain: "Formal conditional inversion uses were + past participle." },
+  { id: "g18", difficulty: 6, q: "She spoke as though she ___ the outcome all along.", options: ["knew", "has known", "had known"], answer: "had known", explain: "Past Perfect expresses an unreal earlier situation." },
 ];
 
-export const vocabularyQuestions = [
-  { q: "Choose the best word: I need to ___ my appointment.", options: ["reschedule", "translate", "borrow"], answer: "reschedule", explain: "Reschedule means move to another time." },
-  { q: "What does confident mean in conversation?", options: ["calm and sure", "very loud", "perfect"], answer: "calm and sure", explain: "Confidence is calm readiness to try." },
-  { q: "Choose the natural phrase.", options: ["make a mistake", "do a mistake", "create mistake"], answer: "make a mistake", explain: "Make a mistake is the natural collocation." },
-  { q: "If someone says 'I’m stuck', they mean:", options: ["they cannot continue", "they are angry", "they are late"], answer: "they cannot continue", explain: "Stuck means blocked or unable to move forward." },
-  { q: "Choose the word for a short useful suggestion.", options: ["tip", "table", "trip"], answer: "tip", explain: "A tip is a small piece of advice." },
-  { q: "In 'keep talking', keep means:", options: ["continue", "hold", "save"], answer: "continue", explain: "Keep + -ing means continue doing something." },
-  { q: "Choose the most natural sentence.", options: ["I missed the bus.", "I lost the bus.", "I failed the bus."], answer: "I missed the bus.", explain: "Missed the bus is the natural phrase." },
-  { q: "If a task is 'challenging', it is:", options: ["difficult but possible", "boring", "finished"], answer: "difficult but possible", explain: "Challenging has a positive sense of difficulty." },
-  { q: "Choose the best word: Can you ___ what you mean?", options: ["explain", "speak", "tell"], answer: "explain", explain: "Explain what you mean is natural." },
-  { q: "A 'native speaker' is someone who:", options: ["grew up speaking the language", "teaches grammar", "likes English"], answer: "grew up speaking the language", explain: "Native speaker describes first-language fluency." },
+export const vocabularyQuestions: readonly TestQuestion[] = [
+  { id: "v1", difficulty: 1, q: "Choose the natural phrase.", options: ["do a mistake", "make a mistake", "build mistake"], answer: "make a mistake", explain: "Make a mistake is the natural collocation." },
+  { id: "v2", difficulty: 1, q: "In 'keep talking', keep means:", options: ["save", "continue", "hold"], answer: "continue", explain: "Keep + -ing means continue doing something." },
+  { id: "v3", difficulty: 1, q: "Choose the best word: Can you ___ what you mean?", options: ["tell", "explain", "speak"], answer: "explain", explain: "Explain what you mean is natural." },
+  { id: "v4", difficulty: 2, q: "I need to ___ my appointment to Friday.", options: ["borrow", "translate", "reschedule"], answer: "reschedule", explain: "Reschedule means move to another time." },
+  { id: "v5", difficulty: 2, q: "If a task is challenging, it is:", options: ["finished", "difficult but possible", "pointless"], answer: "difficult but possible", explain: "Challenging often describes useful difficulty." },
+  { id: "v6", difficulty: 2, q: "Choose the natural sentence.", options: ["I lost the bus.", "I failed the bus.", "I missed the bus."], answer: "I missed the bus.", explain: "Miss the bus is the standard collocation." },
+  { id: "v7", difficulty: 3, q: "Her explanation was clear and ___, with no unnecessary detail.", options: ["concise", "scarce", "shallow"], answer: "concise", explain: "Concise means brief but complete." },
+  { id: "v8", difficulty: 3, q: "The new schedule is flexible. In this context flexible means:", options: ["easy to change", "hard to understand", "strictly fixed"], answer: "easy to change", explain: "A flexible arrangement can be adjusted." },
+  { id: "v9", difficulty: 3, q: "Choose the best collocation: ___ a decision.", options: ["perform", "make", "do"], answer: "make", explain: "English uses make a decision." },
+  { id: "v10", difficulty: 4, q: "The manager was reluctant to approve the plan. Reluctant means:", options: ["unwilling or hesitant", "eager", "unable"], answer: "unwilling or hesitant", explain: "Reluctant describes hesitation or unwillingness." },
+  { id: "v11", difficulty: 4, q: "His comment was taken out of context. This means it was:", options: ["translated accurately", "separated from information needed to understand it", "repeated loudly"], answer: "separated from information needed to understand it", explain: "Context supplies the surrounding meaning." },
+  { id: "v12", difficulty: 4, q: "Choose the natural phrase: The results ___ our expectations.", options: ["exceeded", "overtook", "outgrew"], answer: "exceeded", explain: "Exceed expectations is the standard collocation." },
+  { id: "v13", difficulty: 5, q: "The evidence appears compelling, but it is not conclusive. Conclusive means:", options: ["interesting", "decisive and proving something", "carefully hidden"], answer: "decisive and proving something", explain: "Conclusive evidence settles the question." },
+  { id: "v14", difficulty: 5, q: "Her answer was deliberately ambiguous. Ambiguous means:", options: ["open to more than one interpretation", "completely false", "highly detailed"], answer: "open to more than one interpretation", explain: "Ambiguous language has multiple possible meanings." },
+  { id: "v15", difficulty: 5, q: "Choose the best word: The report seeks to ___ a common misconception.", options: ["dispel", "scatter", "dismissal"], answer: "dispel", explain: "Dispel a misconception means show it is untrue." },
+  { id: "v16", difficulty: 6, q: "The policy may inadvertently exacerbate the problem. Exacerbate means:", options: ["make worse", "describe precisely", "solve gradually"], answer: "make worse", explain: "Exacerbate means increase the severity of something." },
+  { id: "v17", difficulty: 6, q: "His argument rests on a tenuous assumption. Tenuous means:", options: ["widely accepted", "weak and poorly supported", "highly technical"], answer: "weak and poorly supported", explain: "A tenuous claim has little substance or support." },
+  { id: "v18", difficulty: 6, q: "The speaker gave a nuanced account of the dispute. Nuanced means:", options: ["showing subtle distinctions", "deliberately confusing", "strongly biased"], answer: "showing subtle distinctions", explain: "Nuanced thinking recognizes fine differences." },
 ];
 
 export const speakingTopics = [

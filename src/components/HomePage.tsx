@@ -21,7 +21,7 @@ import {
   WhatsappLogo,
   X,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   contacts,
   content,
@@ -35,6 +35,8 @@ import {
   vocabularyQuestions,
 } from "@/lib/site";
 import type { SiteContent } from "@/lib/site-overrides";
+import { useAdaptiveTest, type AdaptiveAnswer } from "@/lib/use-adaptive-test";
+import { OfferStrip } from "@/components/OfferStrip";
 
 type VocabKey = "translating" | "confidence" | "conversation";
 
@@ -79,8 +81,9 @@ export function HomePage({ lang, siteContent = content }: { lang: Lang; siteCont
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#f6f2ea] pb-48 text-[#172033] sm:pb-36">
       <TeachingBackground />
       <Header lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <OfferStrip offers={copy.offers} />
 
-      <Section id="top" className="pt-24 sm:pt-28">
+      <Section id="top" className="pt-8 sm:pt-10">
         <div className="grid min-h-[calc(100dvh-96px)] items-start gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div
             initial={{ opacity: 0, y: 22 }}
@@ -501,9 +504,6 @@ function Header({
 function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClose: () => void }) {
   const copy = useSiteCopy(lang);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [finished, setFinished] = useState(false);
   const [topic, setTopic] = useState(speakingTopics[0]);
   const [name, setName] = useState("");
   const [telegram, setTelegram] = useState("");
@@ -516,11 +516,7 @@ function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClos
 
   const questions = kind === "grammar" ? grammarQuestions : vocabularyQuestions;
   const isQuiz = kind === "grammar" || kind === "vocabulary";
-  const score = useMemo(
-    () => questions.filter((question, index) => answers[index] === question.answer).length,
-    [answers, questions],
-  );
-  const level = score >= Math.ceil(questions.length * 0.8) ? "B1-B2" : score >= Math.ceil(questions.length * 0.55) ? "A2-B1" : "A1-A2";
+  const quiz = useAdaptiveTest(questions);
 
   useEffect(() => {
     window.setTimeout(() => closeRef.current?.focus(), 50);
@@ -575,9 +571,6 @@ function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClos
     setRecording(false);
   }
 
-  const activeQuestion = questions[step];
-  const canGoNext = !isQuiz || answers[step];
-
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-[#172033]/48 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
       <motion.div
@@ -605,33 +598,33 @@ function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClos
         <div className="max-h-[calc(88dvh-96px)] overflow-auto p-5 sm:p-7">
           {isQuiz ? (
             <div>
-              {!finished ? (
+              {!quiz.finished ? (
                 <>
                   <div className="mb-5 h-2 overflow-hidden rounded-full bg-white">
                     <div
                       className="h-full rounded-full bg-[#f3a51d] transition-all"
-                      style={{ width: `${((step + 1) / questions.length) * 100}%` }}
+                      style={{ width: `${((quiz.step + 1) / quiz.total) * 100}%` }}
                     />
                   </div>
                   <p className="text-sm font-black text-[#42506a]">
-                    {step + 1} / {questions.length}
+                    {quiz.step + 1} / {quiz.total}
                   </p>
-                  <h3 className="mt-2 text-2xl font-black leading-snug text-[#172033]">{activeQuestion.q}</h3>
+                  <h3 className="mt-2 text-2xl font-black leading-snug text-[#172033]">{quiz.current.q}</h3>
                   <div className="mt-5 grid gap-3">
-                    {activeQuestion.options.map((option) => (
+                    {quiz.current.options.map((option) => (
                       <label
                         key={option}
                         className={`flex cursor-pointer items-center gap-3 rounded-[18px] border p-4 font-bold transition ${
-                          answers[step] === option
+                          quiz.selected === option
                             ? "border-[#f3a51d] bg-white shadow-[0_12px_30px_rgba(243,165,29,0.18)]"
                             : "border-white/80 bg-white/64 hover:bg-white"
                         }`}
                       >
                         <input
                           type="radio"
-                          name={`q-${step}`}
-                          checked={answers[step] === option}
-                          onChange={() => setAnswers({ ...answers, [step]: option })}
+                          name={`q-${quiz.step}`}
+                          checked={quiz.selected === option}
+                          onChange={() => quiz.setSelected(option)}
                           className="h-5 w-5 accent-[#f3a51d]"
                         />
                         {option}
@@ -639,27 +632,16 @@ function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClos
                     ))}
                   </div>
                   <div className="mt-6 flex justify-between gap-3">
+                    <span />
                     <button
                       type="button"
-                      disabled={step === 0}
-                      onClick={() => setStep((current) => Math.max(0, current - 1))}
-                      className="min-h-11 rounded-full bg-white px-5 font-black disabled:opacity-40"
-                    >
-                      {copy.modal.back}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!canGoNext}
+                      disabled={!quiz.selected}
                       onClick={() => {
-                        if (step === questions.length - 1) {
-                          setFinished(true);
-                          return;
-                        }
-                        setStep((current) => current + 1);
+                        quiz.advance();
                       }}
                       className="min-h-11 rounded-full bg-[#f3a51d] px-5 font-black text-[#172033] disabled:opacity-40"
                     >
-                      {step === questions.length - 1 ? copy.modal.finish : copy.modal.next}
+                      {quiz.step === quiz.total - 1 ? copy.modal.finish : copy.modal.next}
                     </button>
                   </div>
                 </>
@@ -667,14 +649,29 @@ function TestModal({ lang, kind, onClose }: { lang: Lang; kind: TestKind; onClos
                 <ResultView
                   lang={lang}
                   kind={kind}
-                  score={score}
-                  level={level}
-                  answers={answers}
+                  score={quiz.score}
+                  level={quiz.level}
+                  history={quiz.history}
                   name={name}
                   setName={setName}
                   contact={telegram}
                   setContact={setTelegram}
-                  onSubmit={() => submitLead(kind, { kind, score, name, contact: telegram, payload: { answers } })}
+                  onSubmit={() => submitLead(kind, {
+                    kind,
+                    score: quiz.score,
+                    name,
+                    contact: telegram,
+                    payload: {
+                      level: quiz.level,
+                      adaptive: true,
+                      answers: quiz.history.map((answer) => ({
+                        questionId: answer.question.id,
+                        difficulty: answer.question.difficulty,
+                        selected: answer.selected,
+                        correct: answer.correct,
+                      })),
+                    },
+                  })}
                 />
               )}
             </div>
@@ -759,7 +756,7 @@ function ResultView({
   kind,
   score,
   level,
-  answers,
+  history,
   name,
   setName,
   contact,
@@ -770,7 +767,7 @@ function ResultView({
   kind: TestKind;
   score: number;
   level: string;
-  answers: Record<number, string>;
+  history: AdaptiveAnswer[];
   name: string;
   setName: (value: string) => void;
   contact: string;
@@ -779,7 +776,6 @@ function ResultView({
 }) {
   const copy = useSiteCopy(lang);
   const router = useRouter();
-  const questions = kind === "grammar" ? grammarQuestions : vocabularyQuestions;
   const clubId = getLevelClubId(level);
   const recommendedClub = speakingClubGroups.find(g => g.id === clubId);
   return (
@@ -787,7 +783,7 @@ function ResultView({
       <div className="rounded-[24px] bg-white/75 p-5">
         <p className="text-sm font-black uppercase tracking-[0.12em] text-[#9b5f08]">{copy.modal.result}</p>
         <p className="mt-2 text-5xl font-black text-[#087bd3]">
-          {score}/{questions.length}
+          {score}/{history.length}
         </p>
         <p className="mt-2 text-xl font-black">{copy.modal.level}: {level}</p>
         <p className="mt-3 font-semibold text-[#42506a]">
@@ -819,11 +815,11 @@ function ResultView({
       )}
 
       <div className="mt-5 grid gap-3">
-        {questions.map((question, index) => (
-          <div key={question.q} className="rounded-[18px] bg-white/70 p-4">
-            <p className="font-black">{question.q}</p>
+        {history.map((answer) => (
+          <div key={answer.question.id} className="rounded-[18px] bg-white/70 p-4">
+            <p className="font-black">{answer.question.q}</p>
             <p className="mt-2 text-sm font-semibold text-[#42506a]">
-              {answers[index] === question.answer ? "Correct" : `Correct: ${question.answer}`}. {question.explain}
+              {answer.correct ? "Correct" : `Correct: ${answer.question.answer}`}. {answer.question.explain}
             </p>
           </div>
         ))}

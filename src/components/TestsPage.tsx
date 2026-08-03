@@ -14,7 +14,7 @@ import {
   TelegramLogo,
   X,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   contacts,
   content,
@@ -27,9 +27,12 @@ import {
   TestKind,
   vocabularyQuestions,
 } from "@/lib/site";
+import { useAdaptiveTest } from "@/lib/use-adaptive-test";
+import type { SiteContent } from "@/lib/site-overrides";
+import { OfferStrip } from "@/components/OfferStrip";
 
-export function TestsPage({ lang, initialLevel, initialClubId }: { lang: Lang; initialLevel?: string; initialClubId?: number }) {
-  const copy = content[lang];
+export function TestsPage({ lang, initialLevel, initialClubId, siteContent = content }: { lang: Lang; initialLevel?: string; initialClubId?: number; siteContent?: SiteContent }) {
+  const copy = siteContent[lang];
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTest, setActiveTest] = useState<TestKind | null>(null);
   const [detectedLevel, setDetectedLevel] = useState<string | null>(initialLevel ?? null);
@@ -49,8 +52,9 @@ export function TestsPage({ lang, initialLevel, initialClubId }: { lang: Lang; i
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#f6f2ea] pb-24 text-[#172033]">
       <TestsBackground />
       <PageHeader lang={lang} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <OfferStrip offers={copy.offers} />
 
-      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pt-24 sm:px-8 sm:pt-28">
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pt-8 sm:px-8 sm:pt-10">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
@@ -157,9 +161,9 @@ export function TestsPage({ lang, initialLevel, initialClubId }: { lang: Lang; i
               <h3 className="text-xl font-black text-[#172033]">{copy.testLabels[kind]}</h3>
               <p className="mt-2 text-sm leading-6 text-[#42506a]">
                 {kind === "grammar"
-                  ? (lang === "ru" ? "15 вопросов по грамматике" : "15 grammar questions")
+                  ? (lang === "ru" ? "12 адаптивных вопросов" : "12 adaptive questions")
                   : kind === "vocabulary"
-                    ? (lang === "ru" ? "10 вопросов по лексике" : "10 vocabulary questions")
+                    ? (lang === "ru" ? "12 адаптивных вопросов" : "12 adaptive questions")
                     : (lang === "ru" ? "Запишите голос и получите обратную связь" : "Record your voice and get feedback")}
               </p>
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-black text-[#087bd3]">
@@ -370,25 +374,28 @@ function TestInlineModal({
 }) {
   const copy = content[lang];
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [finished, setFinished] = useState(false);
-
   const questions = kind === "grammar" ? grammarQuestions : vocabularyQuestions;
   const isQuiz = kind === "grammar" || kind === "vocabulary";
-  const score = useMemo(
-    () => questions.filter((q, i) => answers[i] === q.answer).length,
-    [answers, questions],
-  );
-  const ratio = questions.length ? score / questions.length : 0;
-  const level = ratio === 1 ? "C1" : ratio >= 0.8 ? "B2" : ratio >= 0.6 ? "B1" : ratio >= 0.4 ? "A2" : "A1";
+  const quiz = useAdaptiveTest(questions);
 
-  async function finishTest() {
-    setFinished(true);
+  async function saveFinishedTest(result: NonNullable<ReturnType<typeof quiz.advance>>) {
     await fetch("/api/test-results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind, score, payload: { answers, level, total: questions.length } }),
+      body: JSON.stringify({
+        kind,
+        score: result.history.filter((answer) => answer.correct).length,
+        payload: {
+          level: result.level,
+          adaptive: true,
+          answers: result.history.map((answer) => ({
+            questionId: answer.question.id,
+            difficulty: answer.question.difficulty,
+            selected: answer.selected,
+            correct: answer.correct,
+          })),
+        },
+      }),
     }).catch(() => undefined);
   }
 
@@ -402,9 +409,6 @@ function TestInlineModal({
   }, [onClose]);
 
   if (!isQuiz) return null;
-
-  const activeQuestion = questions[step];
-  const canGoNext = answers[step];
 
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-[#172033]/48 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
@@ -430,33 +434,33 @@ function TestInlineModal({
           </button>
         </div>
         <div className="max-h-[calc(88dvh-96px)] overflow-auto p-5 sm:p-7">
-          {!finished ? (
+          {!quiz.finished ? (
             <>
               <div className="mb-5 h-2 overflow-hidden rounded-full bg-white">
                 <div
                   className="h-full rounded-full bg-[#f3a51d] transition-all"
-                  style={{ width: `${((step + 1) / questions.length) * 100}%` }}
+                  style={{ width: `${((quiz.step + 1) / quiz.total) * 100}%` }}
                 />
               </div>
               <p className="text-sm font-black text-[#42506a]">
-                {step + 1} / {questions.length}
+                {quiz.step + 1} / {quiz.total}
               </p>
-              <h3 className="mt-2 text-2xl font-black leading-snug text-[#172033]">{activeQuestion.q}</h3>
+              <h3 className="mt-2 text-2xl font-black leading-snug text-[#172033]">{quiz.current.q}</h3>
               <div className="mt-5 grid gap-3">
-                {activeQuestion.options.map((option) => (
+                {quiz.current.options.map((option) => (
                   <label
                     key={option}
                     className={`flex cursor-pointer items-center gap-3 rounded-[18px] border p-4 font-bold transition ${
-                      answers[step] === option
+                      quiz.selected === option
                         ? "border-[#f3a51d] bg-white shadow-[0_12px_30px_rgba(243,165,29,0.18)]"
                         : "border-white/80 bg-white/64 hover:bg-white"
                     }`}
                   >
                     <input
                       type="radio"
-                      name={`q-${step}`}
-                      checked={answers[step] === option}
-                      onChange={() => setAnswers({ ...answers, [step]: option })}
+                      name={`q-${quiz.step}`}
+                      checked={quiz.selected === option}
+                      onChange={() => quiz.setSelected(option)}
                       className="h-5 w-5 accent-[#f3a51d]"
                     />
                     {option}
@@ -464,27 +468,17 @@ function TestInlineModal({
                 ))}
               </div>
               <div className="mt-6 flex justify-between gap-3">
+                <span />
                 <button
                   type="button"
-                  disabled={step === 0}
-                  onClick={() => setStep((c) => Math.max(0, c - 1))}
-                  className="min-h-11 rounded-full bg-white px-5 font-black disabled:opacity-40"
-                >
-                  {copy.modal.back}
-                </button>
-                <button
-                  type="button"
-                  disabled={!canGoNext}
+                  disabled={!quiz.selected}
                   onClick={() => {
-                    if (step === questions.length - 1) {
-                      void finishTest();
-                      return;
-                    }
-                    setStep((c) => c + 1);
+                    const result = quiz.advance();
+                    if (result?.finished) void saveFinishedTest(result);
                   }}
                   className="min-h-11 rounded-full bg-[#f3a51d] px-5 font-black text-[#172033] disabled:opacity-40"
                 >
-                  {step === questions.length - 1 ? copy.modal.finish : copy.modal.next}
+                  {quiz.step === quiz.total - 1 ? copy.modal.finish : copy.modal.next}
                 </button>
               </div>
             </>
@@ -493,16 +487,16 @@ function TestInlineModal({
               <div className="rounded-[24px] bg-white/75 p-5">
                 <p className="text-sm font-black uppercase tracking-[0.12em] text-[#9b5f08]">{copy.modal.result}</p>
                 <p className="mt-2 text-5xl font-black text-[#087bd3]">
-                  {score}/{questions.length}
+                  {quiz.score}/{quiz.total}
                 </p>
-                <p className="mt-2 text-xl font-black">{copy.modal.level}: {level}</p>
+                <p className="mt-2 text-xl font-black">{copy.modal.level}: {quiz.level}</p>
               </div>
               <div className="mt-5 grid gap-3">
-                {questions.map((q, i) => (
-                  <div key={q.q} className="rounded-[18px] bg-white/70 p-4">
-                    <p className="font-black">{q.q}</p>
+                {quiz.history.map((answer) => (
+                  <div key={answer.question.id} className="rounded-[18px] bg-white/70 p-4">
+                    <p className="font-black">{answer.question.q}</p>
                     <p className="mt-2 text-sm font-semibold text-[#42506a]">
-                      {answers[i] === q.answer ? "Correct" : `Correct: ${q.answer}`}. {q.explain}
+                      {answer.correct ? "Correct" : `Correct: ${answer.question.answer}`}. {answer.question.explain}
                     </p>
                   </div>
                 ))}
@@ -510,7 +504,7 @@ function TestInlineModal({
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => onResult(level)}
+                  onClick={() => onResult(quiz.level)}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f3a51d] px-6 py-4 font-black text-[#172033]"
                 >
                   {lang === "ru"

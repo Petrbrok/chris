@@ -123,6 +123,21 @@ function cloneContent(): SiteContent {
   return JSON.parse(JSON.stringify(content)) as SiteContent;
 }
 
+function mergeContentForAdmin(value: unknown): SiteContent {
+  function merge(defaults: unknown, overrides: unknown): unknown {
+    if (!defaults || typeof defaults !== "object" || Array.isArray(defaults)) {
+      return overrides === undefined ? defaults : overrides;
+    }
+    const record = overrides && typeof overrides === "object" && !Array.isArray(overrides)
+      ? overrides as Record<string, unknown>
+      : {};
+    return Object.fromEntries(
+      Object.entries(defaults).map(([key, item]) => [key, merge(item, record[key])]),
+    );
+  }
+  return merge(content, value) as SiteContent;
+}
+
 export default function AdminPage() {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
@@ -174,7 +189,7 @@ export default function AdminPage() {
     ]);
     const cmsBody = await cmsRes.json();
     const dataBody = await dataRes.json();
-    if (cmsBody.site?.ru && cmsBody.site?.en) setSiteContent(cmsBody.site);
+    if (cmsBody.site?.ru && cmsBody.site?.en) setSiteContent(mergeContentForAdmin(cmsBody.site));
     setData(dataBody);
     setBusy(false);
     setStatus(dataRes.ok ? c.updated : c.loadError);
