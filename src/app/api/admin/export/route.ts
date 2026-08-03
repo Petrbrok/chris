@@ -1,7 +1,7 @@
 import { csv, isAuthorized } from "@/lib/admin";
 import { dbUnavailable, query } from "@/lib/db";
 
-const allowed = new Set(["leads", "test_results", "speaking_submissions"]);
+const allowed = new Set(["leads", "test_results", "speaking_submissions", "speaking_club_signups"]);
 
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {

@@ -275,6 +275,140 @@ export const speakingTopics = [
   "Tell me about a mistake that taught you something.",
 ];
 
+export const speakingClubGroups = [
+  {
+    id: 1,
+    level: "A1-A2",
+    name: { en: "Speaking Club 1", ru: "Speaking Club 1" },
+    subtitle: { en: "Beginner / Elementary", ru: "Начальный / Элементарный" },
+    description: {
+      en: "For those who are just starting to speak. Simple topics, basic phrases, a calm and supportive atmosphere.",
+      ru: "Для тех, кто только начинает говорить. Простые темы, базовые фразы, спокойная и поддерживающая атмосфера.",
+    },
+  },
+  {
+    id: 2,
+    level: "A2-B1",
+    name: { en: "Speaking Club 2", ru: "Speaking Club 2" },
+    subtitle: { en: "Pre-Intermediate", ru: "Ниже среднего" },
+    description: {
+      en: "You can build simple sentences and want to speak more freely. Everyday topics, friendly practice.",
+      ru: "Вы строите простые предложения и хотите говорить свободнее. Повседневные темы, дружеская практика.",
+    },
+  },
+  {
+    id: 3,
+    level: "B1",
+    name: { en: "Speaking Club 3", ru: "Speaking Club 3" },
+    subtitle: { en: "Intermediate", ru: "Средний" },
+    description: {
+      en: "You understand most conversations and can express your opinion. Discussions, debates, real-life situations.",
+      ru: "Вы понимаете большинство разговоров и можете выражать мнение. Дискуссии, дебаты, жизненные ситуации.",
+    },
+  },
+  {
+    id: 4,
+    level: "B2",
+    name: { en: "Speaking Club 4", ru: "Speaking Club 4" },
+    subtitle: { en: "Upper-Intermediate", ru: "Выше среднего" },
+    description: {
+      en: "You speak with confidence on many topics. Complex discussions, idioms, nuanced opinions.",
+      ru: "Вы уверенно говорите на многие темы. Сложные обсуждения, идиомы, тонкие оттенки мнений.",
+    },
+  },
+  {
+    id: 5,
+    level: "C1",
+    name: { en: "Speaking Club 5", ru: "Speaking Club 5" },
+    subtitle: { en: "Advanced", ru: "Продвинутый" },
+    description: {
+      en: "Near-fluent speaking. Abstract topics, professional discussions, spontaneous speech.",
+      ru: "Речь, близкая к свободной. Абстрактные темы, профессиональные обсуждения, спонтанная речь.",
+    },
+  },
+  {
+    id: 6,
+    level: "C2",
+    name: { en: "Speaking Club 6", ru: "Speaking Club 6" },
+    subtitle: { en: "Proficiency", ru: "Владение в совершенстве" },
+    description: {
+      en: "Fluent speakers who want to maintain and polish their English at the highest level.",
+      ru: "Свободное владение для тех, кто хочет поддерживать и совершенствовать английский на высшем уровне.",
+    },
+  },
+] as const;
+
+export const testCategories = {
+  exams: {
+    title: { en: "Exam Preparation", ru: "Подготовка к экзаменам" },
+    items: [
+      {
+        id: "ielts",
+        name: { en: "IELTS Preparation", ru: "Подготовка к IELTS" },
+        description: {
+          en: "Comprehensive preparation for all four IELTS modules: Listening, Reading, Writing, and Speaking.",
+          ru: "Комплексная подготовка ко всем четырём модулям IELTS: Listening, Reading, Writing и Speaking.",
+        },
+      },
+      {
+        id: "ege",
+        name: { en: "ЕГЭ Preparation", ru: "Подготовка к ЕГЭ" },
+        description: {
+          en: "Preparation for the Unified State Exam in English: grammar, vocabulary, writing, and speaking sections.",
+          ru: "Подготовка к ЕГЭ по английскому языку: грамматика, лексика, письмо и устная часть.",
+        },
+      },
+      {
+        id: "oge",
+        name: { en: "ОГЭ Preparation", ru: "Подготовка к ОГЭ" },
+        description: {
+          en: "Preparation for the Basic State Exam: reading, listening, grammar, and speaking.",
+          ru: "Подготовка к ОГЭ по английскому: чтение, аудирование, грамматика и устная часть.",
+        },
+      },
+    ],
+  },
+  goals: {
+    title: { en: "Your Goals", ru: "Ваши цели" },
+    items: [
+      {
+        id: "travel",
+        name: { en: "Traveling Abroad", ru: "К поездке за границу" },
+        description: {
+          en: "Learn practical English for airports, hotels, restaurants, asking for directions, and everyday situations while traveling.",
+          ru: "Практический английский для аэропортов, отелей, ресторанов, ориентирования и повседневных ситуаций в путешествии.",
+        },
+      },
+      {
+        id: "study-abroad",
+        name: { en: "Studying Abroad", ru: "К учёбе за границу" },
+        description: {
+          en: "Prepare for academic English: university lectures, essays, presentations, and campus communication.",
+          ru: "Подготовка к академическому английскому: лекции, эссе, презентации и общение в университете.",
+        },
+      },
+    ],
+  },
+} as const;
+
+export function getLevelClubId(level: string): number {
+  if (level.includes("C2")) return 6;
+  if (level.includes("C1")) return 5;
+  if (level.includes("B2")) return 4;
+  if (level.includes("B1") && !level.includes("A2")) return 3;
+  if (level.includes("A2") || level.includes("B1")) return 2;
+  return 1;
+}
+
+export const navLinks = [
+  { id: "about", type: "anchor" as const },
+  { id: "method", type: "anchor" as const },
+  { id: "speaking-club", type: "page" as const, href: "/speaking-club" },
+  { id: "tests", type: "page" as const, href: "/tests" },
+  { id: "prices", type: "anchor" as const },
+  { id: "contacts", type: "anchor" as const },
+] as const;
+
 export const emptyCms = {
   reviews: [],
   media: [],

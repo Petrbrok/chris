@@ -3,6 +3,7 @@
 import { createContext, useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -24,9 +25,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   contacts,
   content,
+  getLevelClubId,
   grammarQuestions,
   Lang,
-  navIds,
+  navLinks,
+  speakingClubGroups,
   speakingTopics,
   TestKind,
   vocabularyQuestions,
@@ -390,7 +393,13 @@ function Header({
   setMenuOpen: (value: boolean) => void;
 }) {
   const copy = useSiteCopy(lang);
-  const links = copy.nav.map((label, index) => ({ label, href: `#${navIds[index]}` }));
+  const links = copy.nav.map((label, index) => {
+    const navItem = navLinks[index];
+    return {
+      label,
+      href: navItem.type === "page" ? `${lang === "en" ? "/en" : ""}${navItem.href}` : `#${navItem.id}`,
+    };
+  });
 
   return (
     <div className="fixed inset-x-0 top-0 z-40 border-b border-white/55 bg-[#f6f2ea]/86 backdrop-blur-xl">
@@ -410,11 +419,18 @@ function Header({
           </span>
         </a>
         <div className="hidden items-center gap-4 text-sm font-black text-[#087bd3] lg:flex">
-          {links.map((link) => (
-            <a key={link.href} href={link.href} className="transition hover:text-[#9b5f08]">
-              {link.label}
-            </a>
-          ))}
+          {links.map((link) => {
+            const isPage = link.href.startsWith("/");
+            return isPage ? (
+              <Link key={link.href} href={link.href} className="transition hover:text-[#9b5f08]">
+                {link.label}
+              </Link>
+            ) : (
+              <a key={link.href} href={link.href} className="transition hover:text-[#9b5f08]">
+                {link.label}
+              </a>
+            );
+          })}
         </div>
         <div className="hidden items-center gap-2 lg:flex">
           <LangSwitch lang={lang} />
@@ -452,11 +468,18 @@ function Header({
             className="overflow-hidden border-t border-white/70 bg-[#f6f2ea] lg:hidden"
           >
             <div className="grid gap-3 px-5 py-5 font-black text-[#087bd3]">
-              {links.map((link) => (
-                <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
-                  {link.label}
-                </a>
-              ))}
+              {links.map((link) => {
+                const isPage = link.href.startsWith("/");
+                return isPage ? (
+                  <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
+                    {link.label}
+                  </a>
+                );
+              })}
               <LangSwitch lang={lang} />
               <a href={`tel:${contacts.phone}`}>{contacts.phone}</a>
               <a href={contacts.telegramChannel}>Telegram Channel</a>
@@ -755,7 +778,10 @@ function ResultView({
   onSubmit: () => void;
 }) {
   const copy = useSiteCopy(lang);
+  const router = useRouter();
   const questions = kind === "grammar" ? grammarQuestions : vocabularyQuestions;
+  const clubId = getLevelClubId(level);
+  const recommendedClub = speakingClubGroups.find(g => g.id === clubId);
   return (
     <div>
       <div className="rounded-[24px] bg-white/75 p-5">
@@ -770,6 +796,28 @@ function ResultView({
             : "Focus on natural phrases and context, not direct translation."}
         </p>
       </div>
+
+      {/* Recommended Speaking Club */}
+      {recommendedClub && (
+        <div className="mt-5 rounded-[24px] border-2 border-[#f3a51d]/40 bg-gradient-to-br from-[#fff9e8] to-white p-5">
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#9b5f08]">
+            {lang === "ru" ? "Рекомендуемая группа" : "Recommended Group"}
+          </p>
+          <h3 className="mt-2 text-2xl font-black text-[#087bd3]">
+            {recommendedClub.name[lang]} ({recommendedClub.level})
+          </h3>
+          <p className="mt-1 text-sm font-bold text-[#42506a]">{recommendedClub.subtitle[lang]}</p>
+          <p className="mt-2 leading-7 text-[#42506a]">{recommendedClub.description[lang]}</p>
+          <button
+            type="button"
+            onClick={() => router.push(`${lang === "en" ? "/en" : ""}/tests?level=${encodeURIComponent(level)}&club=${recommendedClub.id}`)}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#f3a51d] px-6 py-3 font-black text-[#172033]"
+          >
+            {lang === "ru" ? "Записаться в Speaking Club" : "Join Speaking Club"} <ArrowRight size={18} weight="bold" />
+          </button>
+        </div>
+      )}
+
       <div className="mt-5 grid gap-3">
         {questions.map((question, index) => (
           <div key={question.q} className="rounded-[18px] bg-white/70 p-4">
@@ -780,12 +828,6 @@ function ResultView({
           </div>
         ))}
       </div>
-      <MotionButton
-        href={contacts.trialUrl}
-        className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-[#f3a51d] px-6 py-4 font-black text-[#172033]"
-      >
-        {copy.trial} <ArrowRight size={18} weight="bold" />
-      </MotionButton>
       <div className="mt-5 grid gap-3 rounded-[22px] bg-white/70 p-5 sm:grid-cols-2">
         <label className="grid gap-2 font-black">
           {copy.modal.yourName}

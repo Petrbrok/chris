@@ -117,6 +117,17 @@ create table if not exists speaking_submissions (
   created_at timestamptz not null default now()
 );
 
+create table if not exists speaking_club_signups (
+  id bigserial primary key,
+  name text not null,
+  contact text not null,
+  level text not null,
+  club_id integer not null check (club_id between 1 and 6),
+  club_name text not null,
+  source text not null default 'site',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists media_records (
   id bigserial primary key,
   title text not null,

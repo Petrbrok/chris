@@ -5,6 +5,7 @@ const tables = [
   "leads",
   "test_results",
   "speaking_submissions",
+  "speaking_club_signups",
   "media_records",
   "reviews",
   "faq_items",

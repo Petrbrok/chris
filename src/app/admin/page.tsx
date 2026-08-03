@@ -5,7 +5,7 @@ import { content } from "@/lib/site";
 import type { SiteContent } from "@/lib/site-overrides";
 import BotAdmin, { type AdminLang } from "./BotAdmin";
 
-type TabKey = "bot" | "texts" | "leads" | "tests" | "speaking" | "export";
+type TabKey = "bot" | "texts" | "leads" | "tests" | "club" | "speaking" | "export";
 type LangKey = "ru" | "en";
 type Row = Record<string, unknown>;
 
@@ -16,6 +16,7 @@ const pageText = {
       "Тексты сайта",
       "Заявки",
       "Прошли проверку",
+      "Speaking Club",
       "Устная речь",
       "Выгрузка",
     ],
@@ -40,18 +41,22 @@ const pageText = {
     leads: "Заявки",
     tests: "Проверки",
     speaking: "Устная речь",
+    club: "Заявки в клуб",
     audio: "Голосовые",
     editTexts: "Редактирование всех текстов",
     siteLeads: "Заявки с сайта",
     noLeads: "Заявок пока нет",
     testPeople: "Люди, прошедшие проверку",
     noTests: "Результатов пока нет",
+    clubRows: "Заявки в Speaking Club",
+    noClub: "Заявок в клуб пока нет",
     speakingRows: "Проверка устной речи и голосовые",
     noSpeaking: "Заявок на проверку речи пока нет",
     exportTitle: "Выгрузка таблиц",
     exportLeads: "Скачать заявки",
     exportTests: "Скачать результаты",
     exportSpeaking: "Скачать проверки речи",
+    exportClub: "Скачать заявки в клуб",
   },
   en: {
     tabs: [
@@ -59,6 +64,7 @@ const pageText = {
       "Website copy",
       "Enquiries",
       "Test results",
+      "Speaking Club",
       "Speaking",
       "Export",
     ],
@@ -83,18 +89,22 @@ const pageText = {
     leads: "Enquiries",
     tests: "Tests",
     speaking: "Speaking",
+    club: "Club signups",
     audio: "Recordings",
     editTexts: "Edit all website copy",
     siteLeads: "Website enquiries",
     noLeads: "There are no enquiries",
     testPeople: "People who completed a test",
     noTests: "There are no test results",
+    clubRows: "Speaking Club signups",
+    noClub: "There are no club signups",
     speakingRows: "Speaking tests and recordings",
     noSpeaking: "There are no speaking submissions",
     exportTitle: "Table export",
     exportLeads: "Download enquiries",
     exportTests: "Download test results",
     exportSpeaking: "Download speaking submissions",
+    exportClub: "Download club signups",
   },
 } as const;
 
@@ -126,12 +136,13 @@ export default function AdminPage() {
   const [busy, setBusy] = useState(false);
   const c = pageText[adminLang];
   const tabs: Array<{ key: TabKey; label: string }> = (
-    ["bot", "texts", "leads", "tests", "speaking", "export"] as TabKey[]
+    ["bot", "texts", "leads", "tests", "club", "speaking", "export"] as TabKey[]
   ).map((key, index) => ({ key, label: c.tabs[index] }));
 
   const leads = useRows(data, "leads");
   const tests = useRows(data, "test_results");
   const speaking = useRows(data, "speaking_submissions");
+  const club = useRows(data, "speaking_club_signups");
 
   async function login() {
     setBusy(true);
@@ -293,9 +304,10 @@ export default function AdminPage() {
         </aside>
 
         <section className="grid gap-5">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
             <Metric label={c.leads} value={leads.length} />
             <Metric label={c.tests} value={tests.length} />
+            <Metric label={c.club} value={club.length} />
             <Metric label={c.speaking} value={speaking.length} />
             <Metric label={c.audio} value={audioCount} />
           </div>
@@ -350,6 +362,9 @@ export default function AdminPage() {
               lang={adminLang}
             />
           )}
+          {activeTab === "club" && (
+            <Rows title={c.clubRows} empty={c.noClub} rows={club} kind="club" lang={adminLang} />
+          )}
           {activeTab === "speaking" && (
             <Rows
               title={c.speakingRows}
@@ -365,6 +380,7 @@ export default function AdminPage() {
               <div className="flex flex-wrap gap-3">
                 <ExportLink table="leads">{c.exportLeads}</ExportLink>
                 <ExportLink table="test_results">{c.exportTests}</ExportLink>
+                <ExportLink table="speaking_club_signups">{c.exportClub}</ExportLink>
                 <ExportLink table="speaking_submissions">
                   {c.exportSpeaking}
                 </ExportLink>
@@ -394,7 +410,7 @@ function Rows({
   title: string;
   empty: string;
   rows: Row[];
-  kind: "lead" | "test" | "speaking";
+  kind: "lead" | "test" | "club" | "speaking";
   lang: AdminLang;
 }) {
   return (
@@ -490,7 +506,7 @@ function PersonCard({
   lang,
 }: {
   row: Row;
-  kind: "lead" | "test" | "speaking";
+  kind: "lead" | "test" | "club" | "speaking";
   lang: AdminLang;
 }) {
   const name = text(row.name) || (lang === "ru" ? "Без имени" : "No name");
@@ -546,6 +562,11 @@ function PersonCard({
             </p>
           )}
         </div>
+      )}
+      {kind === "club" && (
+        <p className="mt-4 text-sm font-bold text-[#42506a]">
+          {lang === "ru" ? "Группа" : "Group"}: <span className="text-[#172033]">{text(row.club_name)} ({text(row.level)})</span>
+        </p>
       )}
       {kind === "lead" && text(row.message) && (
         <p className="mt-4 text-sm font-bold text-[#42506a]">
